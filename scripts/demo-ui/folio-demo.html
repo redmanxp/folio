@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Folio demo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --blue: #2563eb;
+        --blue-soft: #4f8df7;
+        --green: #20b486;
+        --navy: #172b4d;
+        --bg: #f7f9fc;
+        --card: #fff;
+        --muted: #5b6b86;
+        --border: #e2e8f0;
+        --sidebar: #0f1c33;
+        --sidebar-fg: #e8eef8;
+        --sidebar-muted: #8b9bb8;
+        --sidebar-hover: #1a2b4a;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: Inter, system-ui, sans-serif;
+        background: #0b1220;
+        color: var(--navy);
+      }
+      .window {
+        width: 1280px;
+        height: 800px;
+        margin: 24px auto;
+        display: grid;
+        grid-template-columns: 272px 1fr;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+        background: var(--bg);
+      }
+      aside {
+        background: var(--sidebar);
+        color: var(--sidebar-fg);
+        display: flex;
+        flex-direction: column;
+        padding: 20px 12px 12px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 0 8px 16px;
+      }
+      .brand img { width: 40px; height: 40px; }
+      .brand-name {
+        font-size: 1.15rem;
+        font-weight: 700;
+        letter-spacing: -0.04em;
+      }
+      .brand-name span { position: relative; display: inline-block; }
+      .brand-name span::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 0.1em;
+        width: 0.28em;
+        height: 0.28em;
+        transform: translateX(-50%);
+        border-radius: 999px;
+        background: var(--green);
+      }
+      .brand-sub { font-size: 0.72rem; color: var(--sidebar-muted); margin-top: 4px; }
+      .entity {
+        margin: 0 8px 16px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        font-size: 0.85rem;
+      }
+      .entity small { display: block; color: var(--sidebar-muted); margin-top: 2px; }
+      nav { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+      .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        color: rgba(232, 238, 248, 0.85);
+        font-size: 0.9rem;
+        font-weight: 500;
+      }
+      .nav-item.active { background: var(--blue); color: #fff; }
+      .nav-item svg { width: 16px; height: 16px; opacity: 0.9; }
+      .footer-nav {
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        padding-top: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .footer-nav .nav-item { color: rgba(232, 238, 248, 0.75); padding: 8px 12px; }
+      .version { padding: 10px 12px 4px; font-size: 11px; color: var(--sidebar-muted); }
+      main { display: flex; flex-direction: column; min-width: 0; }
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 24px 10px;
+        border-bottom: 1px solid var(--border);
+        background: color-mix(in srgb, var(--bg) 88%, white);
+      }
+      header h1 { margin: 0; font-size: 1.05rem; letter-spacing: -0.02em; }
+      header p { margin: 4px 0 0; color: var(--muted); font-size: 0.85rem; }
+      .content { padding: 18px 24px 24px; overflow: auto; }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(23, 43, 77, 0.06);
+        padding: 18px;
+      }
+      .card + .card { margin-top: 14px; }
+      .card-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+      .card-head h2 { margin: 0; font-size: 0.92rem; }
+      .card-head p { margin: 4px 0 0; color: var(--muted); font-size: 0.84rem; }
+      .filters {
+        display: grid;
+        grid-template-columns: 1.4fr 1fr 0.8fr 0.9fr auto;
+        gap: 8px;
+        margin-bottom: 14px;
+      }
+      .input, .select, .btn {
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        font: inherit;
+        font-size: 0.85rem;
+      }
+      .input, .select {
+        padding: 9px 12px;
+        background: #fff;
+        color: var(--navy);
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 9px 12px;
+        background: #fff;
+        color: var(--navy);
+        font-weight: 600;
+      }
+      .btn-primary { background: var(--blue); color: #fff; border-color: var(--blue); }
+      .btn-icon {
+        width: 36px;
+        height: 36px;
+        justify-content: center;
+        padding: 0;
+      }
+      table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+      th {
+        text-align: left;
+        color: var(--muted);
+        font-weight: 600;
+        font-size: 0.75rem;
+        padding: 8px 10px;
+        border-bottom: 1px solid var(--border);
+      }
+      td {
+        padding: 11px 10px;
+        border-bottom: 1px solid #eef2f7;
+        vertical-align: top;
+      }
+      tr:last-child td { border-bottom: none; }
+      .provider { font-weight: 600; }
+      .alias { color: var(--muted); font-size: 0.75rem; margin-top: 2px; }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: 3px 9px;
+        font-size: 0.72rem;
+        font-weight: 600;
+      }
+      .badge-ok { background: rgba(32, 180, 134, 0.12); color: #0f766e; }
+      .badge-warn { background: rgba(217, 119, 6, 0.12); color: #b45309; }
+      .badge-muted { background: #eef2f7; color: var(--muted); }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+      }
+      .stat {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 16px;
+        box-shadow: 0 10px 30px rgba(23, 43, 77, 0.06);
+      }
+      .stat label { display: block; color: var(--muted); font-size: 0.78rem; margin-bottom: 8px; }
+      .stat strong { font-size: 1.35rem; letter-spacing: -0.03em; }
+      .stat span { display: block; margin-top: 4px; color: var(--muted); font-size: 0.78rem; }
+      .hidden { display: none !important; }
+      .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.78rem; }
+      .help {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        display: grid;
+        place-items: center;
+        background: #fff;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="window" id="app" data-view="invoices">
+      <aside>
+        <div class="brand">
+          <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4IiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IkZvbGlvIGljb24iPgogIDxkZWZzPgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJibHVlIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzRGOERGNyIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMyNTYzRUIiLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgPC9kZWZzPgogIDxwYXRoIGQ9Ik0yMiAzMWgzNGwxMiAxM2gzOGExMCAxMCAwIDAgMSAxMCAxMHY0NmExMiAxMiAwIDAgMS0xMiAxMkgyMmExMiAxMiAwIDAgMS0xMi0xMlY0M2ExMiAxMiAwIDAgMSAxMi0xMnoiIGZpbGw9InVybCgjYmx1ZSkiLz4KICA8cGF0aCBkPSJNMjkgMjRoNDhhOSA5IDAgMCAxIDkgOXY1N2E5IDkgMCAwIDEtOSA5SDI5YTkgOSAwIDAgMS05LTlWMzNhOSA5IDAgMCAxIDktOXoiIGZpbGw9IiNGRkZGRkYiLz4KICA8cGF0aCBkPSJNMzQgNDNoMzhNMzQgNTVoMzBNMzQgNjdoMjQiIHN0cm9rZT0iI0NCRDVFMSIgc3Ryb2tlLXdpZHRoPSI2IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8cGF0aCBkPSJNNjggODJsMTEgMTEgMjUtMjgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzIwQjQ4NiIgc3Ryb2tlLXdpZHRoPSI5IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KICA8cGF0aCBkPSJNMTMgMTA0YzIxIDEyIDY0IDE0IDEwMS01IiBmaWxsPSJub25lIiBzdHJva2U9IiMyMEI0ODYiIHN0cm9rZS13aWR0aD0iNyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+Cjwvc3ZnPg==" alt="" />
+          <div>
+            <div class="brand-name">Fol<span>i</span>o</div>
+            <div class="brand-sub">Gestión de documentos</div>
+          </div>
+        </div>
+        <div class="entity">
+          Espacio demo
+          <small>Datos inventados · no reales</small>
+        </div>
+        <nav>
+          <div class="nav-item" data-nav="home">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>
+            Inicio
+          </div>
+          <div class="nav-item active" data-nav="invoices">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 3h8l4 4v14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M15 3v4h4M9 13h6M9 17h6M9 9h2"/></svg>
+            Facturas
+          </div>
+          <div class="nav-item" data-nav="providers">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Proveedores
+          </div>
+          <div class="nav-item" data-nav="documents">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h6l2 2h10v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+            Documentos
+          </div>
+        </nav>
+        <div class="footer-nav">
+          <div class="nav-item">Configuración</div>
+          <div class="nav-item">Acerca de Folio</div>
+          <div class="version">Folio v0.1.0</div>
+        </div>
+      </aside>
+
+      <main>
+        <header>
+          <div>
+            <h1 id="title">Facturas</h1>
+            <p id="subtitle">Importá, buscá y organizá comprobantes.</p>
+          </div>
+          <div class="help" title="Ayuda">?</div>
+        </header>
+
+        <div class="content">
+          <section id="view-home" class="hidden">
+            <div class="stats">
+              <div class="stat">
+                <label>Facturas</label>
+                <strong>18</strong>
+                <span>este mes</span>
+              </div>
+              <div class="stat">
+                <label>Pendiente</label>
+                <strong>$248.410</strong>
+                <span>3 vencimientos</span>
+              </div>
+              <div class="stat">
+                <label>Proveedores</label>
+                <strong>12</strong>
+                <span>activos</span>
+              </div>
+              <div class="stat">
+                <label>Pagado</label>
+                <strong>$1.092.550</strong>
+                <span>últimos 30 días</span>
+              </div>
+            </div>
+            <div class="card" style="margin-top:14px">
+              <div class="card-head">
+                <div>
+                  <h2>Próximos vencimientos</h2>
+                  <p>Datos de demostración</p>
+                </div>
+              </div>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Proveedor</th>
+                    <th>Vence</th>
+                    <th>Importe</th>
+                    <th>Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="provider">Norte Energía S.A.</td>
+                    <td>03/12/2026</td>
+                    <td>$86.420,00</td>
+                    <td><span class="badge badge-warn">Pendiente</span></td>
+                  </tr>
+                  <tr>
+                    <td class="provider">Agua Clara S.A.</td>
+                    <td>08/12/2026</td>
+                    <td>$42.190,50</td>
+                    <td><span class="badge badge-warn">Pendiente</span></td>
+                  </tr>
+                  <tr>
+                    <td class="provider">Red Telecomunicaciones SRL</td>
+                    <td>12/12/2026</td>
+                    <td>$119.800,00</td>
+                    <td><span class="badge badge-muted">Parcial</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section id="view-invoices">
+            <div class="card">
+              <div class="card-head">
+                <div>
+                  <h2>Buscar facturas</h2>
+                  <p>18 resultados · datos inventados</p>
+                </div>
+                <div style="display:flex;gap:8px">
+                  <button class="btn btn-primary">Importar</button>
+                  <button class="btn">Reprocesar</button>
+                </div>
+              </div>
+              <div class="filters">
+                <input class="input" value="noviembre" readonly />
+                <input class="input" value="Todos los proveedores" readonly />
+                <input class="input" value="2026-11" readonly />
+                <input class="input" value="Todos" readonly />
+                <button class="btn btn-primary">Buscar</button>
+              </div>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Proveedor</th>
+                    <th>Nº</th>
+                    <th>Emisión</th>
+                    <th>Período</th>
+                    <th>Importe</th>
+                    <th>Pago</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <div class="provider">Norte Energía S.A.</div>
+                      <div class="alias">CUIT 30-71234567-8</div>
+                    </td>
+                    <td>0001-00004512</td>
+                    <td>18/11/2026</td>
+                    <td>2026-11</td>
+                    <td>$86.420,00</td>
+                    <td><span class="badge badge-warn">Pendiente</span></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="provider">Red Telecomunicaciones SRL</div>
+                      <div class="alias">alias: fibra-oficina</div>
+                    </td>
+                    <td>0003-00019884</td>
+                    <td>12/11/2026</td>
+                    <td>2026-11</td>
+                    <td>$119.800,00</td>
+                    <td><span class="badge badge-muted">Parcial</span></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="provider">Agua Clara S.A.</div>
+                      <div class="alias">CUIT 30-69881234-1</div>
+                    </td>
+                    <td>0002-00007731</td>
+                    <td>10/11/2026</td>
+                    <td>2026-11</td>
+                    <td>$42.190,50</td>
+                    <td><span class="badge badge-ok">Pagado</span></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="provider">Papelería Sur</div>
+                      <div class="alias">insumos</div>
+                    </td>
+                    <td>0008-00000321</td>
+                    <td>05/11/2026</td>
+                    <td>2026-11</td>
+                    <td>$18.940,00</td>
+                    <td><span class="badge badge-ok">Pagado</span></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="provider">Cloud Hosting Andina</div>
+                      <div class="alias">servidores</div>
+                    </td>
+                    <td>0012-00005670</td>
+                    <td>01/11/2026</td>
+                    <td>2026-11</td>
+                    <td>$64.200,00</td>
+                    <td><span class="badge badge-ok">Pagado</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section id="view-providers" class="hidden">
+            <div class="card">
+              <div class="card-head">
+                <div>
+                  <h2>Proveedores</h2>
+                  <p>12 proveedores · clic para abrir la ficha</p>
+                </div>
+                <button class="btn btn-icon" aria-label="Nuevo">+</button>
+              </div>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Nombre</th>
+                    <th>CUIT</th>
+                    <th>Teléfono</th>
+                    <th>Correo</th>
+                    <th>CBU</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <div class="provider">Norte Energía S.A.</div>
+                      <div class="alias">luz</div>
+                    </td>
+                    <td>30-71234567-8</td>
+                    <td>0800-555-1000</td>
+                    <td>facturacion@norte-energia.demo</td>
+                    <td class="mono">0170099120000001234567</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="provider">Agua Clara S.A.</div>
+                      <div class="alias">servicios</div>
+                    </td>
+                    <td>30-69881234-1</td>
+                    <td>011-4555-2211</td>
+                    <td>cobranzas@aguaclara.demo</td>
+                    <td class="mono">0720000788000009988776</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="provider">Red Telecomunicaciones SRL</div>
+                      <div class="alias">fibra-oficina</div>
+                    </td>
+                    <td>30-70112233-9</td>
+                    <td>0810-222-3344</td>
+                    <td>empresas@redtel.demo</td>
+                    <td class="mono">0070081820000044556677</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="provider">Papelería Sur</div>
+                      <div class="alias">insumos</div>
+                    </td>
+                    <td>20-28445566-3</td>
+                    <td>011-4788-9900</td>
+                    <td>ventas@papeleriasur.demo</td>
+                    <td class="mono">0110599520000003344556</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="provider">Cloud Hosting Andina</div>
+                      <div class="alias">IT</div>
+                    </td>
+                    <td>30-70990011-2</td>
+                    <td>—</td>
+                    <td>billing@cloudandina.demo</td>
+                    <td class="mono">0150001602000007788990</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      const titles = {
+        home: ["Inicio", "Tus documentos, bajo control."],
+        invoices: ["Facturas", "Importá, buscá y organizá comprobantes."],
+        providers: ["Proveedores", "Directorio por entidad con CUIT y alias."],
+      };
+
+      window.setDemoView = function setDemoView(view) {
+        document.getElementById("app").dataset.view = view;
+        document.querySelectorAll("[data-nav]").forEach((el) => {
+          el.classList.toggle("active", el.dataset.nav === view);
+        });
+        ["home", "invoices", "providers"].forEach((id) => {
+          document.getElementById(`view-${id}`).classList.toggle("hidden", id !== view);
+        });
+        const [title, subtitle] = titles[view];
+        document.getElementById("title").textContent = title;
+        document.getElementById("subtitle").textContent = subtitle;
+      };
+    </script>
+  </body>
+</html>

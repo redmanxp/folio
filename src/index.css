@@ -1,0 +1,90 @@
+@import "tailwindcss";
+@import "@fontsource-variable/inter/index.css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "Inter Variable", Inter, "Segoe UI", system-ui, sans-serif;
+
+  --color-brand-blue: #2563eb;
+  --color-brand-blue-light: #4f8df7;
+  --color-brand-green: #20b486;
+  --color-brand-navy: #172b4d;
+  --color-brand-gray: #cbd5e1;
+
+  --color-background: #f7f9fc;
+  --color-foreground: #172b4d;
+  --color-card: #ffffff;
+  --color-card-foreground: #172b4d;
+  --color-muted: #eef2f7;
+  --color-muted-foreground: #5b6b86;
+  --color-border: #e2e8f0;
+  --color-accent: #2563eb;
+  --color-accent-foreground: #ffffff;
+  --color-success: #20b486;
+  --color-warning: #d97706;
+  --color-danger: #dc2626;
+  --color-sidebar: #0f1c33;
+  --color-sidebar-foreground: #e8eef8;
+  --color-sidebar-muted: #8b9bb8;
+  --color-sidebar-hover: #1a2b4a;
+  --color-ring: #4f8df7;
+
+  --shadow-soft: 0 10px 30px rgba(23, 43, 77, 0.06);
+  --radius-xl: 1rem;
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  .dark {
+    color-scheme: dark;
+    --color-background: #0b1220;
+    --color-foreground: #e8eef8;
+    --color-card: #121a2b;
+    --color-card-foreground: #e8eef8;
+    --color-muted: #1a2438;
+    --color-muted-foreground: #9aa8c2;
+    --color-border: #243149;
+    --color-accent: #4f8df7;
+    --color-accent-foreground: #0b1220;
+    --color-success: #20b486;
+    --color-warning: #f59e0b;
+    --color-danger: #f87171;
+    --color-sidebar: #080e1a;
+    --color-sidebar-foreground: #e8eef8;
+    --color-sidebar-muted: #7f90ad;
+    --color-sidebar-hover: #152238;
+    --color-ring: #4f8df7;
+    --shadow-soft: 0 12px 32px rgba(0, 0, 0, 0.35);
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html,
+  body,
+  #root {
+    @apply h-full min-h-full;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    @apply font-sans;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}

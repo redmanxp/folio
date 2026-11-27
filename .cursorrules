@@ -1,0 +1,69 @@
+# Folio — Reglas del Proyecto
+
+## Qué es Folio
+Aplicación de escritorio **Windows**, gratuita, local, sin cuenta y open source.
+Organiza facturas y documentos: buscar, administrar, controlar proveedores y pagos.
+Eslogan: **Tus documentos, bajo control.** / *Tus documentos. Tus empresas. Todo en un solo lugar.*
+
+Documento maestro: `docs/DOCUMENTO-MAESTRO.md` (fuente de producto y alcance).
+
+## Stack (NO CAMBIAR sin decisión explícita)
+- **Tauri 2**
+- **React + TypeScript** (Vite)
+- **Tailwind CSS 4** + componentes estilo shadcn/ui
+- **Lucide React**
+- **Inter Variable** (tipografía UI)
+- **Rust** (backend Tauri)
+- **SQLite** (rusqlite bundled)
+- Build Windows: MSVC Build Tools + Windows SDK (`scripts/dev-windows.ps1`)
+
+## Fase actual: MVP funcional (UI + backend local)
+- UI Tailwind + Lucide + brand oficial.
+- Backend Tauri/Rust + SQLite operativo (migraciones en `src-tauri/src/db.rs`).
+- Importación PDF/imagen, QR ARCA/AFIP, OCR Tesseract local, proveedores por CUIT.
+- Modo de uso: `ui.workspaceMode` = `invoices` | `management` (Configuración).
+- Log local: `%APPDATA%/com.folio.app/folio.log`
+- Pendiente maestro: drag&drop, revisión pre-guardado, categorías/etiquetas, pagos parciales con historial, PDF.js, XLSX, backup automático, firma, release público.
+
+## Extracción de facturas (NO romper)
+Orden: bytes `?p=` → decrypt PDF (pass vacío) → texto PDF → filename → imágenes QR (rqrr) → OCR.
+QR ARCA JSON v1: fecha, cuit emisor, ptoVta, tipoCmp, nroCmp, importe, moneda, ctz, tipoDocRec, nroDocRec, tipoCodAut, codAut.
+Sin internet para leer QR. No enviar documentos a servicios externos.
+Aislar panics por documento; no tumbar la app en reproceso.
+
+## Identidad / marca
+- Assets oficiales en `src/assets/brand/`:
+  - `folio_icon.svg` — favicon, app icon, sidebar
+  - `folio_wordmark.svg` — encabezados compactos
+  - `folio_full.svg` — bienvenida / brand principal
+- No rediseñar ni reemplazar los SVG oficiales.
+- Paleta: Azul `#2563EB` · Azul claro `#4F8DF7` · Verde `#20B486` · Navy `#172B4D` · Gris `#CBD5E1`
+
+## Principios
+- Costo inicial: **$0**
+- Sin telemetría / sin cuenta / sin publicidad en la app
+- Local-first / offline para uso habitual
+- Extracción **asistida** (usuario puede corregir); no sistema contable
+- Commits solo a pedido
+- Responder siempre en **español**
+- Cambio mínimo fuera del alcance de la etapa activa
+- Desarrollar por etapas del maestro; no saltar con errores críticos
+
+## Protocolo Cursor
+1. Plan → 2. Aprobación si impacta estable → 3. Implementación acotada → 4. Pruebas → 5. Checkpoint → 6. Continuar
+
+## Navegación UI
+Inicio · Facturas · Proveedores · Pagos · Documentos · Informes  
+Pie sidebar: Configuración · Acerca de Folio  
+Institucional (menú ayuda del header): Ayuda · Contacto · Acerca · Apoyar · Privacidad (`src/content/folioMeta.ts` para enlaces).  
+(En modo `invoices` se ocultan Pagos e Informes.)
+
+## Estructura frontend
+- `src/app` — shell / navegación
+- `src/components/layout` — Sidebar, Header, AppLayout
+- `src/components/ui` — kit visual
+- `src/components/brand` — logos
+- `src/pages` — pantallas
+- `src/theme` — claro / oscuro / system
+- `src/assets/brand` — SVG oficiales
+- `docs/` — maestro, arquitectura, roadmap

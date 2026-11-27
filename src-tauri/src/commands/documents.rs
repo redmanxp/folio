@@ -1,0 +1,145 @@
+use crate::db;
+use crate::error::{AppError, AppResult};
+use crate::models::Document;
+use crate::state::AppState;
+use rusqlite::params;
+use tauri::State;
+
+pub fn map_document(row: &rusqlite::Row<'_>) -> rusqlite::Result<Document> {
+    Ok(Document {
+        id: row.get(0)?,
+        entity_id: row.get(1)?,
+        provider_id: row.get(2)?,
+        file_name: row.get(3)?,
+        original_path: row.get(4)?,
+        stored_path: row.get(5)?,
+        file_hash: row.get(6)?,
+        mime_type: row.get(7)?,
+        doc_type: row.get(8)?,
+        number: row.get(9)?,
+        period: row.get(10)?,
+        issue_date: row.get(11)?,
+        due_date: row.get(12)?,
+        amount: row.get(13)?,
+        currency: row.get(14)?,
+        point_of_sale: row.get(15)?,
+        fx_rate: row.get(16)?,
+        auth_type: row.get(17)?,
+        auth_code: row.get(18)?,
+        receptor_doc_type: row.get(19)?,
+        receptor_doc_number: row.get(20)?,
+        notes: row.get(21)?,
+        imported_at: row.get(22)?,
+        provider_name: row.get(23)?,
+        payment_status: row.get(24)?,
+    })
+}
+
+pub const DOC_SELECT: &str = "
+    SELECT d.id, d.entity_id, d.provider_id, d.file_name, d.original_path, d.stored_path,
+           d.file_hash, d.mime_type, d.doc_type, d.number, d.period, d.issue_date, d.due_date,
+           d.amount, d.currency,
+           d.point_of_sale, d.fx_rate, d.auth_type, d.auth_code,
+           d.receptor_doc_type, d.receptor_doc_number,
+           d.notes, d.imported_at,
+           p.name as provider_name, pay.status as payment_status
+    FROM documents d
+    LEFT JOIN providers p ON p.id = d.provider_id
+    LEFT JOIN payments pay ON pay.document_id = d.id
+";
+
+#[tauri::command]
+pub fn get_document(id: String, state: State<'_, AppState>) -> AppResult<Document> {
+    state.with_db(|conn| {
+        let sql = format!("{DOC_SELECT} WHERE d.id = ?1");
+        conn.query_row(&sql, params![id], map_document)
+            .map_err(|_| AppError::msg("Documento no encontrado"))
+    })
+}
+
+#[tauri::command]
+pub fn update_document_meta(
+    id: String,
+    number: Option<String>,
+    period: Option<String>,
+    issue_date: Option<String>,
+    due_date: Option<String>,
+    amount: Option<f64>,
+    provider_id: Option<String>,
+    notes: Option<String>,
+    doc_type: Option<String>,
+    state: State<'_, AppState>,
+) -> AppResult<Document> {
+    state.with_db(|conn| {
+        let changed = conn.execute(
+            "UPDATE documents SET
+                number = ?1, period = ?2, issue_date = ?3, due_date = ?4,
+                amount = ?5, provider_id = ?6, notes = ?7, doc_type = ?8
+             WHERE id = ?9",
+            params![
+                number,
+                period,
+                issue_date,
+                due_date,
+                amount,
+                provider_id,
+                notes,
+                doc_type,
+                id
+            ],
+        )?;
+        if changed == 0 {
+            return Err(AppError::msg("Documento no encontrado"));
+        }
+        Ok(())
+    })?;
+    get_document(id, state)
+}
+
+#[tauri::command]
+pub fn delete_document(id: String, delete_file: bool, state: State<'_, AppState>) -> AppResult<()> {
+    let stored_path: String = state.with_db(|conn| {
+        conn.query_row(
+            "SELECT stored_path FROM documents WHERE id = ?1",
+            params![id],
+            |row| row.get(0),
+        )
+        .map_err(|_| AppError::msg("Documento no encontrado"))
+    })?;
+
+    state.with_db(|conn| {
+        conn.execute("DELETE FROM documents WHERE id = ?1", params![id])?;
+        Ok(())
+    })?;
+
+    if delete_file {
+        let path = std::path::Path::new(&stored_path);
+        if path.exists() {
+            std::fs::remove_file(path)?;
+            log::info!("Archivo eliminado: {}", stored_path);
+        }
+    }
+
+    log::info!("Documento eliminado de la base: {}", id);
+    Ok(())
+}
+
+#[tauri::command]
+pub fn list_recent_documents(
+    entity_id: String,
+    limit: Option<i64>,
+    state: State<'_, AppState>,
+) -> AppResult<Vec<Document>> {
+    let limit = limit.unwrap_or(20).clamp(1, 100);
+    state.with_db(|conn| {
+        db::ensure_entity_exists(conn, &entity_id)?;
+        let sql = format!("{DOC_SELECT} WHERE d.entity_id = ?1 ORDER BY d.imported_at DESC LIMIT ?2");
+        let mut stmt = conn.prepare(&sql)?;
+        let rows = stmt.query_map(params![entity_id, limit], map_document)?;
+        let mut docs = Vec::new();
+        for row in rows {
+            docs.push(row?);
+        }
+        Ok(docs)
+    })
+}

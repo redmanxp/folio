@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Folio — Tus documentos, bajo control</title>
+    <meta
+      name="description"
+      content="Folio es una app gratuita de Windows para organizar facturas, documentos, proveedores y pagos. Local, sin cuenta y de código abierto."
+    />
+    <meta name="theme-color" content="#2563EB" />
+    <base href="/folio/" />
+    <link rel="icon" href="assets/folio_icon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --blue: #2563eb;
+        --blue-soft: #4f8df7;
+        --green: #20b486;
+        --navy: #172b4d;
+        --slate: #cbd5e1;
+        --bg: #f5f7fb;
+        --card: #ffffff;
+        --text: #0f172a;
+        --muted: #64748b;
+        --border: #e2e8f0;
+      }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        font-family: Inter, system-ui, sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(1200px 500px at 10% -10%, rgba(79, 141, 247, 0.22), transparent 55%),
+          radial-gradient(900px 420px at 90% 0%, rgba(32, 180, 134, 0.16), transparent 50%),
+          linear-gradient(180deg, #eef3fb 0%, var(--bg) 42%, #eef2f7 100%);
+        line-height: 1.55;
+      }
+      a { color: var(--blue); text-decoration: none; }
+      a:hover { text-decoration: underline; }
+      .wrap { width: min(960px, calc(100% - 2rem)); margin: 0 auto; }
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1.25rem 0;
+      }
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: var(--navy);
+        font-weight: 700;
+        font-size: 1.35rem;
+        letter-spacing: -0.04em;
+        text-decoration: none;
+      }
+      .brand img { width: 40px; height: 40px; }
+      .brand span span {
+        position: relative;
+        display: inline-block;
+      }
+      .brand span span::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 0.1em;
+        width: 0.28em;
+        height: 0.28em;
+        transform: translateX(-50%);
+        border-radius: 999px;
+        background: var(--green);
+      }
+      nav { display: flex; flex-wrap: wrap; gap: 0.85rem; font-size: 0.92rem; }
+      nav a { color: var(--navy); font-weight: 500; text-decoration: none; }
+      nav a:hover { color: var(--blue); }
+      .hero {
+        padding: 3.5rem 0 2.5rem;
+      }
+      .hero h1 {
+        margin: 0;
+        max-width: 16ch;
+        font-size: clamp(2rem, 5vw, 3.1rem);
+        line-height: 1.12;
+        letter-spacing: -0.04em;
+        color: var(--navy);
+      }
+      .hero p {
+        margin: 1rem 0 0;
+        max-width: 42rem;
+        color: var(--muted);
+        font-size: 1.05rem;
+      }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-top: 1.75rem;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        border-radius: 0.85rem;
+        padding: 0.75rem 1.1rem;
+        font-weight: 600;
+        font-size: 0.95rem;
+        border: 1px solid transparent;
+        text-decoration: none;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+      }
+      .btn:hover { text-decoration: none; transform: translateY(-1px); }
+      .btn-primary {
+        background: var(--blue);
+        color: #fff;
+        box-shadow: 0 10px 24px rgba(37, 99, 235, 0.25);
+      }
+      .btn-secondary {
+        background: var(--card);
+        color: var(--navy);
+        border-color: var(--border);
+      }
+      .btn-mp {
+        background: #009ee3;
+        color: #fff;
+      }
+      .btn-mp img { height: 18px; width: auto; }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin: 2rem 0 3rem;
+      }
+      .card {
+        background: color-mix(in srgb, var(--card) 88%, transparent);
+        border: 1px solid var(--border);
+        border-radius: 1rem;
+        padding: 1.1rem 1.15rem;
+        backdrop-filter: blur(6px);
+      }
+      .card h3 {
+        margin: 0 0 0.35rem;
+        font-size: 0.98rem;
+        color: var(--navy);
+      }
+      .card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+      section {
+        padding: 0.5rem 0 2.75rem;
+      }
+      section h2 {
+        margin: 0 0 0.75rem;
+        font-size: 1.4rem;
+        letter-spacing: -0.03em;
+        color: var(--navy);
+      }
+      section p { color: var(--muted); }
+      .panel {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 1.1rem;
+        padding: 1.35rem 1.4rem;
+      }
+      .shots {
+        display: grid;
+        gap: 1.25rem;
+      }
+      .shots figure {
+        margin: 0;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 1.1rem;
+        overflow: hidden;
+        box-shadow: 0 18px 40px rgba(23, 43, 77, 0.08);
+      }
+      .shots img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+      .shots figcaption {
+        padding: 0.75rem 1rem 1rem;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+      footer {
+        border-top: 1px solid var(--border);
+        padding: 1.5rem 0 2.5rem;
+        color: var(--muted);
+        font-size: 0.88rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem 1.25rem;
+        justify-content: space-between;
+      }
+      @media (max-width: 640px) {
+        header { flex-direction: column; align-items: flex-start; }
+        .hero { padding-top: 2rem; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <a class="brand" href="./">
+          <img src="assets/folio_icon.svg" alt="" />
+          <span>Fol<span>i</span>o</span>
+        </a>
+        <nav>
+          <a href="#capturas">Capturas</a>
+          <a href="#privacidad">Privacidad</a>
+          <a href="#apoyar">Apoyar</a>
+          <a href="https://github.com/redmanxp/folio">GitHub</a>
+          <a href="mailto:folioapp.dev@gmail.com">Contacto</a>
+        </nav>
+      </header>
+
+      <main>
+        <section class="hero">
+          <h1>Tus documentos, bajo control.</h1>
+          <p>
+            Folio es una aplicación gratuita para Windows que te ayuda a organizar facturas,
+            documentos, proveedores y pagos en tu propia computadora. Sin cuenta, sin suscripción
+            y sin subir tus archivos a Internet.
+          </p>
+          <div class="actions">
+            <a class="btn btn-primary" href="https://github.com/redmanxp/folio/releases">
+              Descargar
+            </a>
+            <a class="btn btn-secondary" href="https://github.com/redmanxp/folio">
+              Ver código
+            </a>
+            <a class="btn btn-mp" href="https://link.mercadopago.com.ar/folioapp">
+              <img src="assets/mercadopago.svg" alt="" />
+              Apoyar Folio
+            </a>
+          </div>
+        </section>
+
+        <div class="grid">
+          <article class="card">
+            <h3>Privacidad</h3>
+            <p>Tus documentos permanecen en tu computadora.</p>
+          </article>
+          <article class="card">
+            <h3>Gratis</h3>
+            <p>Sin suscripciones ni funciones básicas bloqueadas.</p>
+          </article>
+          <article class="card">
+            <h3>Offline</h3>
+            <p>El uso habitual no depende de Internet.</p>
+          </article>
+          <article class="card">
+            <h3>Transparente</h3>
+            <p>Código abierto y desarrollo público.</p>
+          </article>
+        </div>
+
+        <section id="capturas">
+          <h2>Así se ve Folio</h2>
+          <p style="margin:0 0 1rem">Capturas de demostración con datos inventados.</p>
+          <div class="shots">
+            <figure>
+              <img src="assets/screenshots/inicio.png" alt="Pantalla de inicio de Folio con resumen y vencimientos de demostración" width="1280" height="800" loading="lazy" />
+              <figcaption>Inicio</figcaption>
+            </figure>
+            <figure>
+              <img src="assets/screenshots/facturas.png" alt="Listado de facturas de Folio con datos inventados" width="1280" height="800" loading="lazy" />
+              <figcaption>Facturas</figcaption>
+            </figure>
+            <figure>
+              <img src="assets/screenshots/proveedores.png" alt="Directorio de proveedores de Folio con datos inventados" width="1280" height="800" loading="lazy" />
+              <figcaption>Proveedores</figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <section id="privacidad">
+          <h2>Privacidad</h2>
+          <div class="panel">
+            <p>
+              Folio está diseñado para funcionar de forma local. Los documentos que importás y los
+              datos que registrás se almacenan en tu dispositivo. No enviamos tus archivos a
+              servidores propios, no pedimos cuenta y no incorporamos telemetría ni publicidad.
+            </p>
+            <p>
+              Algunas acciones opcionales (abrir GitHub, comprobar descargas o colaborar con Mercado
+              Pago) pueden requerir conexión porque abren enlaces externos.
+            </p>
+          </div>
+        </section>
+
+        <section id="apoyar">
+          <h2>Apoyar Folio</h2>
+          <div class="panel">
+            <p>
+              Folio es y seguirá siendo gratuito. Si te resulta útil, podés colaborar de forma
+              voluntaria para sostener el desarrollo.
+            </p>
+            <div class="actions">
+              <a class="btn btn-mp" href="https://link.mercadopago.com.ar/folioapp">
+                <img src="assets/mercadopago.svg" alt="" />
+                Apoyar con Mercado Pago
+              </a>
+              <a class="btn btn-secondary" href="mailto:folioapp.dev@gmail.com">
+                folioapp.dev@gmail.com
+              </a>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer>
+        <span>Folio · MIT · Windows</span>
+        <span>
+          <a href="https://github.com/redmanxp/folio">GitHub</a>
+          ·
+          <a href="mailto:folioapp.dev@gmail.com">Contacto</a>
+          ·
+          <a href="https://link.mercadopago.com.ar/folioapp">Donar</a>
+        </span>
+      </footer>
+    </div>
+  </body>
+</html>
