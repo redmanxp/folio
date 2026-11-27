@@ -19,7 +19,7 @@ Si preferís GitHub, abrí un issue **sin detalle explotable** y pedí contacto 
 
 Estas afirmaciones se validan con el checklist de abajo. Mientras un ítem esté pendiente, no lo presentamos como garantía absoluta.
 
-## Alcance actual (0.1.1+)
+## Alcance actual (0.1.2+)
 - Base SQLite local con foreign keys
 - Hash SHA-256 de archivos en importación
 - Mutaciones de proveedores/documentos/pagos validadas por `entity_id`
@@ -31,7 +31,7 @@ Estas afirmaciones se validan con el checklist de abajo. Mientras un ítem esté
 - **Sin firma de código** (SmartScreen puede avisar)
 - Capabilities mínimas: `core`, `dialog`, `opener` (sin `fs` ni `shell`)
 - CSP habilitada (compatible con PDF.js / workers)
-- Protocolo `asset:` limitado a `%APPDATA%/com.folio.app/**` y `%LOCALAPPDATA%/com.folio.app/**`
+- Protocolo `asset:` limitado a `$APPDATA/**` y `$APPLOCALDATA/**` (ya resuelven a la carpeta de Folio)
 
 ### Permisos Tauri (revisión)
 | Plugin / permiso | Estado | Motivo |
@@ -53,7 +53,7 @@ Orden seguro:
 5. Reabrir SQLite; si falla, rollback al snapshot
 
 ## Aviso de Windows / SmartScreen
-En 0.1.1 el instalador **no está firmado** con certificado de código. Windows suele mostrar:
+En 0.1.2 el instalador **no está firmado** con certificado de código. Windows suele mostrar:
 
 > “Windows protegió su PC” / “SmartScreen…”
 
@@ -67,7 +67,7 @@ Eso **no significa** que Folio esté infectado: significa que el editor aún no 
 
 ### Verificar hash en PowerShell
 ```powershell
-Get-FileHash .\Folio_0.1.1_x64-setup.exe -Algorithm SHA256
+Get-FileHash .\Folio_0.1.2_x64-setup.exe -Algorithm SHA256
 ```
 
 ## Checklist antes del release 1.0

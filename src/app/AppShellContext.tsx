@@ -29,7 +29,8 @@ type AppShellContextValue = {
   setActiveEntityId: (id: string | null) => void;
   activeEntity: Entity | null;
   selectedDocumentId: string | null;
-  openDocument: (id: string) => void;
+  openDocument: (id: string, returnTo?: AppSection) => void;
+  closeDocument: () => void;
   clearSelectedDocument: () => void;
   selectedProviderId: string | null;
   openProvider: (id: string, returnTo?: AppSection) => void;
@@ -54,6 +55,7 @@ export function AppShellProvider({ children }: { children: ReactNode }) {
   const [entities, setEntities] = useState<Entity[]>([]);
   const [activeEntityId, setActiveEntityIdState] = useState<string | null>(null);
   const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
+  const [documentReturnSection, setDocumentReturnSection] = useState<AppSection | null>(null);
   const [selectedProviderId, setSelectedProviderId] = useState<string | null>(null);
   const [providerReturnSection, setProviderReturnSection] = useState<AppSection | null>(null);
   const [loading, setLoading] = useState(true);
@@ -81,7 +83,8 @@ export function AppShellProvider({ children }: { children: ReactNode }) {
       // Navegación del menú: vuelve al listado (openDocument/openProvider usan setSectionState)
       setSelectedProviderId(null);
       setProviderReturnSection(null);
-      if (next !== "documents") setSelectedDocumentId(null);
+      setSelectedDocumentId(null);
+      setDocumentReturnSection(null);
       setSectionState(next);
     },
     [workspaceMode],
@@ -137,19 +140,35 @@ export function AppShellProvider({ children }: { children: ReactNode }) {
     else localStorage.removeItem(ACTIVE_KEY);
   }, []);
 
-  const openDocument = useCallback((id: string) => {
-    setSelectedDocumentId(id);
-    setSelectedProviderId(null);
-    setProviderReturnSection(null);
-    setSectionState("documents");
-  }, []);
+  const openDocument = useCallback(
+    (id: string, returnTo?: AppSection) => {
+      setSelectedDocumentId(id);
+      setDocumentReturnSection(returnTo ?? section);
+      setSelectedProviderId(null);
+      setProviderReturnSection(null);
+      // El visor vive en DocumentsPage; al cerrar se vuelve a returnTo.
+      setSectionState("documents");
+    },
+    [section],
+  );
 
-  const clearSelectedDocument = useCallback(() => setSelectedDocumentId(null), []);
+  const closeDocument = useCallback(() => {
+    const back = documentReturnSection ?? "documents";
+    setSelectedDocumentId(null);
+    setDocumentReturnSection(null);
+    setSectionState(back);
+  }, [documentReturnSection]);
+
+  const clearSelectedDocument = useCallback(() => {
+    setSelectedDocumentId(null);
+    setDocumentReturnSection(null);
+  }, []);
 
   const openProvider = useCallback((id: string, returnTo: AppSection = "providers") => {
     setSelectedProviderId(id);
     setProviderReturnSection(returnTo);
     setSelectedDocumentId(null);
+    setDocumentReturnSection(null);
     setSectionState("providers");
   }, []);
 
@@ -198,6 +217,7 @@ export function AppShellProvider({ children }: { children: ReactNode }) {
       activeEntity,
       selectedDocumentId,
       openDocument,
+      closeDocument,
       clearSelectedDocument,
       selectedProviderId,
       openProvider,
@@ -223,6 +243,7 @@ export function AppShellProvider({ children }: { children: ReactNode }) {
       activeEntity,
       selectedDocumentId,
       openDocument,
+      closeDocument,
       clearSelectedDocument,
       selectedProviderId,
       openProvider,

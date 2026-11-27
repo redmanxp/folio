@@ -3,6 +3,7 @@ import { convertFileSrc } from "@tauri-apps/api/core";
 import { FileText, ScanText } from "lucide-react";
 import { api, errMessage } from "@/api";
 import { useAppShell } from "@/app/AppShellContext";
+import { PdfViewer } from "@/components/documents/PdfViewer";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,7 +26,7 @@ export function DocumentsPage() {
     activeEntityId,
     selectedDocumentId,
     openDocument,
-    clearSelectedDocument,
+    closeDocument,
     setError,
     bumpRefresh,
     setSection,
@@ -121,7 +122,7 @@ export function DocumentsPage() {
     const deleteFile = confirm("¿También eliminar el archivo copiado en Folio?");
     try {
       await api.deleteDocument(activeEntityId, doc.id, deleteFile);
-      clearSelectedDocument();
+      closeDocument();
       bumpRefresh();
     } catch (err) {
       setError(errMessage(err));
@@ -190,13 +191,13 @@ export function DocumentsPage() {
               <CardTitle>{doc.fileName}</CardTitle>
               <CardDescription>Hash {doc.fileHash.slice(0, 16)}…</CardDescription>
             </div>
-            <Button variant="outline" onClick={clearSelectedDocument}>
+            <Button variant="outline" onClick={closeDocument}>
               Volver al listado
             </Button>
           </CardHeader>
           <CardContent className="p-3">
             {isPdf ? (
-              <iframe title={doc.fileName} src={src} className="h-[70vh] w-full rounded-xl bg-black" />
+              <PdfViewer filePath={doc.storedPath} title={doc.fileName} />
             ) : (
               <img src={src} alt={doc.fileName} className="max-h-[70vh] w-full rounded-xl object-contain" />
             )}

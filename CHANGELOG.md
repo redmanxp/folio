@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.2 — 2026-11-26
+
+### Corregido
+- Visor PDF con PDF.js (canvas) en lugar de iframe en blanco
+- Al cerrar un documento se vuelve a la sección de origen (Facturas ↔ Documentos)
+- Scope `asset:`: `$APPDATA` ya incluye `com.folio.app` (el path duplicado daba 403 al cargar PDFs)
+- Importes alineados a la derecha en listados
+
+### Añadido
+- Instalador NSIS `Folio_0.1.2_x64-setup.exe`
+
 ## 0.1.1 — 2026-11-26
 
 ### Seguridad

@@ -31,6 +31,14 @@ QR ARCA JSON v1: fecha, cuit emisor, ptoVta, tipoCmp, nroCmp, importe, moneda, c
 Sin internet para leer QR. No enviar documentos a servicios externos.
 Aislar panics por documento; no tumbar la app en reproceso.
 
+## Seguridad crítica (NO ROMPER)
+- Mutaciones provider/document/payment exigen `entity_id` validado (helpers en `db.rs`)
+- Export CSV: sanitizar celdas con prefijos `= + - @` (y whitespace de control)
+- Logs: sin CUIT/importe/CAE/rutas absolutas; rotación de `folio.log` (5 MiB → `folio.log.1`)
+- Restore: path traversal bloqueado; límites anti zip-bomb; snapshot en `_restore_safety`
+- Import: máx. 50 MiB por archivo
+- Capabilities Tauri: solo `dialog` + `opener` (sin `fs`/`shell`); CSP; `asset:` scope `$APPDATA/**` / `$APPLOCALDATA/**` (esas vars ya incluyen `com.folio.app`; no duplicar el identifier)
+
 ## Identidad / marca
 - Assets oficiales en `src/assets/brand/`:
   - `folio_icon.svg` — favicon, app icon, sidebar

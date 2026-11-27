@@ -314,6 +314,7 @@ export function InvoicesPage() {
                     active={sortKey === "amount"}
                     dir={sortDir}
                     onClick={() => toggleSort("amount")}
+                    className="text-right"
                   />
                   {workspaceMode === "management" ? (
                     <SortableHead
@@ -352,7 +353,7 @@ export function InvoicesPage() {
                     <TableCell>{doc.number ?? "—"}</TableCell>
                     <TableCell>{formatIssueDate(doc.issueDate)}</TableCell>
                     <TableCell>{doc.period ?? "—"}</TableCell>
-                    <TableCell>
+                    <TableCell className="text-right tabular-nums">
                       {doc.amount != null ? formatCurrency(doc.amount) : "—"}
                     </TableCell>
                     {workspaceMode === "management" ? (
@@ -423,19 +424,23 @@ function SortableHead({
   active,
   dir,
   onClick,
+  className,
 }: {
   label: string;
   active: boolean;
   dir: "asc" | "desc";
   onClick: () => void;
+  className?: string;
 }) {
   const Icon = !active ? ArrowUpDown : dir === "asc" ? ArrowUp : ArrowDown;
+  const right = className?.includes("text-right");
   return (
-    <TableHead>
+    <TableHead className={className}>
       <button
         type="button"
         className={cn(
-          "inline-flex items-center gap-1 text-left font-medium hover:text-foreground",
+          "inline-flex items-center gap-1 font-medium hover:text-foreground",
+          right ? "w-full justify-end text-right" : "text-left",
           active ? "text-foreground" : "text-muted-foreground",
         )}
         onClick={onClick}

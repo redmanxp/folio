@@ -109,7 +109,7 @@ export function PaymentsPage() {
                   <TableHead>Documento</TableHead>
                   <TableHead>Proveedor</TableHead>
                   <TableHead>Vence</TableHead>
-                  <TableHead>Importe</TableHead>
+                  <TableHead className="text-right">Importe</TableHead>
                   <TableHead>Estado</TableHead>
                   <TableHead></TableHead>
                 </TableRow>
@@ -128,7 +128,7 @@ export function PaymentsPage() {
                     </TableCell>
                     <TableCell>{item.providerName ?? "—"}</TableCell>
                     <TableCell>{item.dueDate ?? "—"}</TableCell>
-                    <TableCell>
+                    <TableCell className="text-right tabular-nums">
                       {item.amountDue != null ? formatCurrency(item.amountDue) : "—"}
                     </TableCell>
                     <TableCell>

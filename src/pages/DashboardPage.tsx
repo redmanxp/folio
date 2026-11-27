@@ -241,7 +241,7 @@ export function DashboardPage() {
                         {item.providerName ?? "Sin proveedor"} · {item.dueDate ?? "Sin fecha"}
                       </p>
                     </div>
-                    <p className="text-sm font-semibold">
+                    <p className="text-right text-sm font-semibold tabular-nums">
                       {item.amountDue != null ? formatCurrency(item.amountDue) : "—"}
                     </p>
                   </button>
