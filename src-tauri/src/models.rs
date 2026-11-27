@@ -51,6 +51,7 @@ pub struct NewProvider {
 #[serde(rename_all = "camelCase")]
 pub struct UpdateProvider {
     pub id: String,
+    pub entity_id: String,
     pub name: String,
     pub cuit: Option<String>,
     pub alias: Option<String>,
@@ -132,6 +133,7 @@ pub struct Payment {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdatePayment {
+    pub entity_id: String,
     pub document_id: String,
     pub status: String,
     pub amount_due: Option<f64>,

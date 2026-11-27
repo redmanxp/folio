@@ -26,10 +26,13 @@ export const api = {
   listProviders: (entityId: string) => invoke<Provider[]>("list_providers", { entityId }),
   createProvider: (payload: NewProvider) => invoke<Provider>("create_provider", { payload }),
   updateProvider: (payload: UpdateProvider) => invoke<Provider>("update_provider", { payload }),
-  deleteProvider: (id: string) => invoke<void>("delete_provider", { id }),
+  deleteProvider: (entityId: string, id: string) =>
+    invoke<void>("delete_provider", { entityId, id }),
 
-  getDocument: (id: string) => invoke<Document>("get_document", { id }),
+  getDocument: (entityId: string, id: string) =>
+    invoke<Document>("get_document", { entityId, id }),
   updateDocumentMeta: (args: {
+    entityId: string;
     id: string;
     number?: string | null;
     period?: string | null;
@@ -40,8 +43,8 @@ export const api = {
     notes?: string | null;
     docType?: string | null;
   }) => invoke<Document>("update_document_meta", args),
-  deleteDocument: (id: string, deleteFile: boolean) =>
-    invoke<void>("delete_document", { id, deleteFile }),
+  deleteDocument: (entityId: string, id: string, deleteFile: boolean) =>
+    invoke<void>("delete_document", { entityId, id, deleteFile }),
   listRecentDocuments: (entityId: string, limit = 20) =>
     invoke<Document[]>("list_recent_documents", { entityId, limit }),
 
@@ -67,6 +70,7 @@ export const api = {
   createBackup: () => invoke<string>("create_backup"),
   restoreBackup: (backupPath: string) => invoke<void>("restore_backup", { backupPath }),
   listBackups: () => invoke<string[]>("list_backups"),
+  deleteBackup: (backupPath: string) => invoke<void>("delete_backup", { backupPath }),
 
   getAppInfo: () => invoke<AppInfo>("get_app_info"),
   getPaths: () => invoke<AppPaths>("get_paths"),

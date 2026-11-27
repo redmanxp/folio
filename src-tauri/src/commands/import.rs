@@ -9,6 +9,9 @@ use rusqlite::{params, Connection};
 use std::path::{Path, PathBuf};
 use tauri::State;
 
+/// Tope por archivo al importar (PDF/imagen). Evita OCR/memoria descontrolados.
+const MAX_IMPORT_FILE_BYTES: u64 = 50 * 1024 * 1024; // 50 MiB
+
 #[tauri::command]
 pub async fn import_files(
     entity_id: String,
@@ -21,7 +24,7 @@ pub async fn import_files(
         .map_err(|e| AppError::msg(format!("Importación interrumpida: {e}")))?
 }
 
-fn import_files_sync(
+pub(crate) fn import_files_sync(
     state: AppState,
     entity_id: String,
     paths: Vec<String>,
@@ -60,10 +63,12 @@ fn import_files_sync(
             }
             Ok(ImportOutcome::Duplicate) => report.duplicates += 1,
             Err(err) => {
-                log::warn!("Error importando {}: {}", path_str, err);
-                report
-                    .errors
-                    .push(format!("{}: {}", source.display(), err));
+                let label = source
+                    .file_name()
+                    .and_then(|n| n.to_str())
+                    .unwrap_or("archivo");
+                log::warn!("Error importando {label}: {err}");
+                report.errors.push(format!("{label}: {err}"));
             }
         }
     }
@@ -247,6 +252,14 @@ fn import_one(
         return Err(AppError::msg("No es un archivo válido"));
     }
 
+    let meta = std::fs::metadata(source)?;
+    if meta.len() > MAX_IMPORT_FILE_BYTES {
+        return Err(AppError::msg(format!(
+            "Archivo demasiado grande (máx. {} MiB)",
+            MAX_IMPORT_FILE_BYTES / (1024 * 1024)
+        )));
+    }
+
     let hash = file_sha256(source)?;
     let exists: bool = state.with_db(|conn| {
         let count: i64 = conn.query_row(
@@ -300,7 +313,7 @@ fn import_one(
                 Some(pid)
             }
             Err(err) => {
-                log::warn!("No se pudo crear proveedor desde CUIT {}: {}", cuit, err);
+                log::warn!("No se pudo crear proveedor desde CUIT: {err}");
                 None
             }
         },
@@ -412,11 +425,10 @@ pub fn enrich_document_from_text(
     };
     apply_invoice_data(&state, &entity_id, &document_id, data, &mut report)?;
     log::info!(
-        "Enriquecido {} desde texto PDF.js (proveedores={})",
-        document_id,
+        "Enriquecido documento desde texto PDF.js (proveedores={})",
         report.providers_created
     );
-    crate::commands::documents::get_document(document_id, state)
+    crate::commands::documents::get_document(entity_id, document_id, state)
 }
 
 fn apply_invoice_data(
@@ -436,7 +448,7 @@ fn apply_invoice_data(
                 Some(pid)
             }
             Err(err) => {
-                log::warn!("Reproceso: proveedor CUIT {} falló: {}", cuit, err);
+                log::warn!("Reproceso: alta de proveedor falló: {err}");
                 None
             }
         },
@@ -568,7 +580,7 @@ fn upsert_provider(
              VALUES (?1, ?2, ?3, ?4, NULL, 'Creado automáticamente desde factura', ?5)",
             params![id, entity_id, name, cuit, now_iso()],
         )?;
-        log::info!("Proveedor creado automáticamente: {} ({})", name, cuit);
+        log::info!("Proveedor creado automáticamente: {name}");
         Ok((id, true))
     })
 }

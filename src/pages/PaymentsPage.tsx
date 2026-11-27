@@ -48,7 +48,9 @@ export function PaymentsPage() {
 
   async function mark(documentId: string, next: string) {
     try {
+      if (!activeEntityId) return;
       await api.updatePayment({
+        entityId: activeEntityId,
         documentId,
         status: next,
         paidAt: next === "paid" ? new Date().toISOString().slice(0, 10) : null,

@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
-import { FolderOpen, HardDrive, Monitor, Moon, ScanText, Sun } from "lucide-react";
+import { FolderOpen, HardDrive, Monitor, Moon, ScanText, Sun, Trash2 } from "lucide-react";
 import { api, errMessage } from "@/api";
 import { useAppShell } from "@/app/AppShellContext";
 import { Alert } from "@/components/ui/alert";
@@ -103,7 +103,7 @@ export function SettingsPage() {
         const r = await api.reprocessDocuments(activeEntityId);
         if (r.documentIds.length > 0) {
           const { enrichDocumentsWithPdfJs } = await import("@/lib/enrichFromPdf");
-          await enrichDocumentsWithPdfJs(r.documentIds);
+          await enrichDocumentsWithPdfJs(activeEntityId, r.documentIds);
         }
         return r;
       });
@@ -182,6 +182,23 @@ export function SettingsPage() {
       bumpRefresh();
       setBackups(await api.listBackups());
       setMessage("Restauración completada");
+    } catch (err) {
+      setError(errMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function deleteBackup(path: string) {
+    const name = path.split(/[/\\]/).pop() ?? path;
+    if (!confirm(`¿Eliminar el backup "${name}"? Esta acción no se puede deshacer.`)) {
+      return;
+    }
+    setBusy(true);
+    try {
+      await api.deleteBackup(path);
+      setBackups(await api.listBackups());
+      setMessage(`Backup eliminado: ${name}`);
     } catch (err) {
       setError(errMessage(err));
     } finally {
@@ -387,10 +404,24 @@ export function SettingsPage() {
                 key={item}
                 className="flex items-center justify-between gap-3 rounded-xl border border-border px-3 py-2 text-sm"
               >
-                <span className="truncate">{item}</span>
-                <Button size="sm" variant="outline" onClick={() => void restoreBackup(item)}>
-                  Restaurar
-                </Button>
+                <span className="truncate" title={item}>
+                  {item.split(/[/\\]/).pop() ?? item}
+                </span>
+                <div className="flex shrink-0 gap-2">
+                  <Button size="sm" variant="outline" disabled={busy} onClick={() => void restoreBackup(item)}>
+                    Restaurar
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="danger"
+                    disabled={busy}
+                    aria-label="Eliminar backup"
+                    title="Eliminar backup"
+                    onClick={() => void deleteBackup(item)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             ))
           )}
@@ -403,7 +434,8 @@ export function SettingsPage() {
             <CardTitle>Rutas locales</CardTitle>
             <CardDescription>
               Podés cambiar dónde se guardan documentos y backups. La base SQLite permanece en la
-              carpeta de datos de la app.
+              carpeta de datos de la app. La previsualización recomienda rutas dentro del directorio
+              de datos de Folio.
             </CardDescription>
           </div>
           <Button disabled={busy} onClick={() => void savePaths()}>

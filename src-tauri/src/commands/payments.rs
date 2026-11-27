@@ -20,8 +20,8 @@ pub fn list_payments(
                    pay.amount_paid, pay.paid_at, pay.notes, pay.updated_at,
                    d.file_name, p.name, d.due_date
             FROM payments pay
-            JOIN documents d ON d.id = pay.document_id
-            LEFT JOIN providers p ON p.id = d.provider_id
+            JOIN documents d ON d.id = pay.document_id AND d.entity_id = pay.entity_id
+            LEFT JOIN providers p ON p.id = d.provider_id AND p.entity_id = pay.entity_id
             WHERE pay.entity_id = ?1
             ",
         );
@@ -70,6 +70,7 @@ pub fn update_payment(payload: UpdatePayment, state: State<'_, AppState>) -> App
     let updated_at = now_iso();
 
     state.with_db(|conn| {
+        db::ensure_document_in_entity(conn, &payload.entity_id, &payload.document_id)?;
         let changed = conn.execute(
             "UPDATE payments SET
                 status = ?1,
@@ -78,7 +79,7 @@ pub fn update_payment(payload: UpdatePayment, state: State<'_, AppState>) -> App
                 paid_at = ?4,
                 notes = COALESCE(?5, notes),
                 updated_at = ?6
-             WHERE document_id = ?7",
+             WHERE document_id = ?7 AND entity_id = ?8",
             params![
                 status,
                 payload.amount_due,
@@ -86,7 +87,8 @@ pub fn update_payment(payload: UpdatePayment, state: State<'_, AppState>) -> App
                 payload.paid_at,
                 payload.notes,
                 updated_at,
-                payload.document_id
+                payload.document_id,
+                payload.entity_id
             ],
         )?;
         if changed == 0 {
@@ -102,11 +104,11 @@ pub fn update_payment(payload: UpdatePayment, state: State<'_, AppState>) -> App
                    pay.amount_paid, pay.paid_at, pay.notes, pay.updated_at,
                    d.file_name, p.name, d.due_date
             FROM payments pay
-            JOIN documents d ON d.id = pay.document_id
-            LEFT JOIN providers p ON p.id = d.provider_id
-            WHERE pay.document_id = ?1
+            JOIN documents d ON d.id = pay.document_id AND d.entity_id = pay.entity_id
+            LEFT JOIN providers p ON p.id = d.provider_id AND p.entity_id = pay.entity_id
+            WHERE pay.document_id = ?1 AND pay.entity_id = ?2
             ",
-            params![payload.document_id],
+            params![payload.document_id, payload.entity_id],
             |row| {
                 Ok(Payment {
                     id: row.get(0)?,
@@ -138,8 +140,8 @@ pub fn list_agenda(entity_id: String, state: State<'_, AppState>) -> AppResult<V
                    pay.amount_paid, pay.paid_at, pay.notes, pay.updated_at,
                    d.file_name, p.name, d.due_date
             FROM payments pay
-            JOIN documents d ON d.id = pay.document_id
-            LEFT JOIN providers p ON p.id = d.provider_id
+            JOIN documents d ON d.id = pay.document_id AND d.entity_id = pay.entity_id
+            LEFT JOIN providers p ON p.id = d.provider_id AND p.entity_id = pay.entity_id
             WHERE pay.entity_id = ?1
               AND pay.status IN ('pending', 'partial')
             ORDER BY IFNULL(d.due_date, '9999') ASC

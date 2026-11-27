@@ -8,17 +8,18 @@ mod models;
 mod state;
 mod util;
 
+#[cfg(test)]
+mod e2e_user_sim;
+
 use state::AppState;
 use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        .plugin(tauri_plugin_opener::init())
-        .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_fs::init())
-        .plugin(tauri_plugin_shell::init())
-        .setup(|app| {
+            .plugin(tauri_plugin_opener::init())
+            .plugin(tauri_plugin_dialog::init())
+            .setup(|app| {
             let data_dir = app
                 .path()
                 .app_data_dir()
@@ -58,6 +59,7 @@ pub fn run() {
             commands::backup::create_backup,
             commands::backup::restore_backup,
             commands::backup::list_backups,
+            commands::backup::delete_backup,
             commands::config::get_app_info,
             commands::config::get_paths,
             commands::config::update_paths,

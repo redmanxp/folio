@@ -145,9 +145,10 @@ export function ProvidersPage() {
         return;
       }
 
-      if (!selected) return;
+      if (!selected || !activeEntityId) return;
       const updated = await api.updateProvider({
         id: selected.id,
+        entityId: activeEntityId,
         name: form.name.trim(),
         cuit: form.cuit.trim() || null,
         alias: form.alias.trim() || null,
@@ -168,7 +169,8 @@ export function ProvidersPage() {
   async function onDelete(id: string) {
     if (!confirm("¿Eliminar proveedor?")) return;
     try {
-      await api.deleteProvider(id);
+      if (!activeEntityId) return;
+      await api.deleteProvider(activeEntityId, id);
       if (selectedProviderId === id) clearSelectedProvider();
       bumpRefresh();
       await refresh();

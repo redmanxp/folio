@@ -125,7 +125,7 @@ export function InvoicesPage() {
           const r = await api.importFiles(activeEntityId, paths);
           if (r.documentIds.length > 0) {
             const { enrichDocumentsWithPdfJs } = await import("@/lib/enrichFromPdf");
-            await enrichDocumentsWithPdfJs(r.documentIds);
+            await enrichDocumentsWithPdfJs(activeEntityId, r.documentIds);
           }
           return r;
         },
@@ -158,7 +158,7 @@ export function InvoicesPage() {
         const r = await api.reprocessDocuments(activeEntityId);
         if (r.documentIds.length > 0) {
           const { enrichDocumentsWithPdfJs } = await import("@/lib/enrichFromPdf");
-          await enrichDocumentsWithPdfJs(r.documentIds);
+          await enrichDocumentsWithPdfJs(activeEntityId, r.documentIds);
         }
         return r;
       });
@@ -387,7 +387,10 @@ export function InvoicesPage() {
                                   const { enrichDocumentWithPdfJs } = await import(
                                     "@/lib/enrichFromPdf"
                                   );
-                                  const current = await api.getDocument(doc.id);
+                                  const current = await api.getDocument(
+                                    activeEntityId!,
+                                    doc.id,
+                                  );
                                   await enrichDocumentWithPdfJs(current);
                                   return r;
                                 },

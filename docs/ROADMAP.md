@@ -3,29 +3,48 @@
 ## Circuito
 Construir → Validar → Publicar → Difundir → Crecer → Monetizar indirectamente
 
-## Etapas de desarrollo
-| Etapa | Estado 0.1.0 | Notas |
-|------|--------------|-------|
-| 0 Preparación | Hecho | Repo, reglas, stack Tauri2 |
-| 1 Prototipo visual | Hecho | Shell + navegación |
-| 2 Entidades | Hecho | CRUD personal/empresa |
-| 3 Base de datos | Hecho | SQLite + migración v1 |
-| 4 Importación | Parcial | PDF/img + hash + dup; falta QR/OCR lote avanzado |
-| 5 Archivo | Hecho | Copia organizada por entidad |
-| 6 Buscador | Hecho | Filtros + totales |
-| 7 Visualizador | Hecho | PDF/img vía asset protocol |
-| 8 Proveedores | Hecho | CRUD básico |
-| 9 Excel | Parcial | Export CSV; XLSX pendiente |
-| 10 Pagos | Hecho | pending/partial/paid |
-| 11 Agenda | Hecho | Pendientes por vencimiento |
-| 12 Backup | Hecho | ZIP create/restore |
-| 13 Configuración | Parcial | Rutas + notas; limpieza avanzada pendiente |
-| 14 Producto público | En curso | Landing, Mercado Pago, contacto |
-| 15 Release | Pendiente | Instalador firmado, hashes, VirusTotal |
+## Leyenda de estados
+- **Completado**: disponible en el MVP actual
+- **En desarrollo**: se está trabajando activamente
+- **Planificado**: previsto para próximas etapas
+- **En evaluación**: idea posible, no es una promesa
 
-## Próximos hitos
-1. Compilar `npm run tauri:dev` y prueba manual Windows
-2. Mejorar metadatos de factura (QR AFIP cuando aplique)
-3. Export XLSX nativo
-4. Beta cerrada 5–10 usuarios
-5. GitHub público + Release 1.0
+## Etapas de desarrollo
+| Etapa | Estado | Notas |
+|------|--------|-------|
+| 0 Preparación | Completado | Repo, reglas, stack Tauri 2 |
+| 1 Prototipo visual | Completado | Shell + navegación |
+| 2 Entidades | Completado | CRUD personal/empresa |
+| 3 Base de datos | Completado | SQLite + migraciones |
+| 4 Importación | Completado | PDF/img + hash + dup + extracción asistida |
+| 5 Archivo | Completado | Copia organizada por entidad |
+| 6 Buscador | Completado | Filtros + totales |
+| 7 Visualizador | Completado | PDF/img vía asset protocol |
+| 8 Proveedores | Completado | Ficha + CUIT/alias/contacto/CBU |
+| 9 Excel | En desarrollo | Export CSV listo; XLSX planificado |
+| 10 Pagos | Completado | pending/partial/paid |
+| 11 Agenda | Completado | Pendientes por vencimiento |
+| 12 Backup | Completado | ZIP create/restore |
+| 13 Configuración | Completado | Tema, entidades, rutas |
+| 14 Producto público | En desarrollo | Landing, Releases, contacto, Mercado Pago |
+| 15 Release 1.0 | Planificado | Pruebas Windows, checklist seguridad, distribución |
+
+## Prioridades próximas
+1. Prueba exhaustiva en Windows (instalación, backup, restauración, desinstalación)
+2. Cerrar checklist de seguridad verificable
+3. Beta cerrada con 5–10 usuarios reales
+4. Pulir web/README y capturas
+5. Release 1.0 identificable
+
+## Planificado
+- Exportación XLSX nativa
+- Revisión pre-guardado / drag & drop
+- Categorías y etiquetas
+- Historial de pagos parciales más completo
+- Visor PDF.js ampliado
+
+## En evaluación
+- Actualizaciones automáticas
+- Firma de código
+- Dominio propio y correos `@folio...`
+- Mecanismos de apoyo internacionales además de Mercado Pago

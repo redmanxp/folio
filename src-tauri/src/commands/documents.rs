@@ -44,21 +44,27 @@ pub const DOC_SELECT: &str = "
            d.notes, d.imported_at,
            p.name as provider_name, pay.status as payment_status
     FROM documents d
-    LEFT JOIN providers p ON p.id = d.provider_id
-    LEFT JOIN payments pay ON pay.document_id = d.id
+    LEFT JOIN providers p ON p.id = d.provider_id AND p.entity_id = d.entity_id
+    LEFT JOIN payments pay ON pay.document_id = d.id AND pay.entity_id = d.entity_id
 ";
 
 #[tauri::command]
-pub fn get_document(id: String, state: State<'_, AppState>) -> AppResult<Document> {
+pub fn get_document(
+    entity_id: String,
+    id: String,
+    state: State<'_, AppState>,
+) -> AppResult<Document> {
     state.with_db(|conn| {
-        let sql = format!("{DOC_SELECT} WHERE d.id = ?1");
-        conn.query_row(&sql, params![id], map_document)
+        db::ensure_document_in_entity(conn, &entity_id, &id)?;
+        let sql = format!("{DOC_SELECT} WHERE d.id = ?1 AND d.entity_id = ?2");
+        conn.query_row(&sql, params![id, entity_id], map_document)
             .map_err(|_| AppError::msg("Documento no encontrado"))
     })
 }
 
 #[tauri::command]
 pub fn update_document_meta(
+    entity_id: String,
     id: String,
     number: Option<String>,
     period: Option<String>,
@@ -71,11 +77,13 @@ pub fn update_document_meta(
     state: State<'_, AppState>,
 ) -> AppResult<Document> {
     state.with_db(|conn| {
+        db::ensure_document_in_entity(conn, &entity_id, &id)?;
+        db::ensure_optional_provider_same_entity(conn, &entity_id, &provider_id)?;
         let changed = conn.execute(
             "UPDATE documents SET
                 number = ?1, period = ?2, issue_date = ?3, due_date = ?4,
                 amount = ?5, provider_id = ?6, notes = ?7, doc_type = ?8
-             WHERE id = ?9",
+             WHERE id = ?9 AND entity_id = ?10",
             params![
                 number,
                 period,
@@ -85,7 +93,8 @@ pub fn update_document_meta(
                 provider_id,
                 notes,
                 doc_type,
-                id
+                id,
+                entity_id
             ],
         )?;
         if changed == 0 {
@@ -93,34 +102,56 @@ pub fn update_document_meta(
         }
         Ok(())
     })?;
-    get_document(id, state)
+    get_document(entity_id, id, state)
 }
 
 #[tauri::command]
-pub fn delete_document(id: String, delete_file: bool, state: State<'_, AppState>) -> AppResult<()> {
+pub fn delete_document(
+    entity_id: String,
+    id: String,
+    delete_file: bool,
+    state: State<'_, AppState>,
+) -> AppResult<()> {
     let stored_path: String = state.with_db(|conn| {
+        db::ensure_document_in_entity(conn, &entity_id, &id)?;
         conn.query_row(
-            "SELECT stored_path FROM documents WHERE id = ?1",
-            params![id],
+            "SELECT stored_path FROM documents WHERE id = ?1 AND entity_id = ?2",
+            params![id, entity_id],
             |row| row.get(0),
         )
         .map_err(|_| AppError::msg("Documento no encontrado"))
     })?;
 
     state.with_db(|conn| {
-        conn.execute("DELETE FROM documents WHERE id = ?1", params![id])?;
+        conn.execute(
+            "DELETE FROM documents WHERE id = ?1 AND entity_id = ?2",
+            params![id, entity_id],
+        )?;
         Ok(())
     })?;
 
     if delete_file {
         let path = std::path::Path::new(&stored_path);
-        if path.exists() {
+        let docs_root = state.paths_snapshot()?.documents_dir;
+        let allowed = path
+            .canonicalize()
+            .ok()
+            .and_then(|p| {
+                docs_root
+                    .canonicalize()
+                    .ok()
+                    .map(|root| p.starts_with(root))
+            })
+            .unwrap_or(false);
+        if allowed && path.exists() {
             std::fs::remove_file(path)?;
-            log::info!("Archivo eliminado: {}", stored_path);
+            log::info!("Archivo archivado eliminado");
+        } else if path.exists() {
+            log::warn!("No se eliminó archivo fuera de documents_dir");
         }
     }
 
-    log::info!("Documento eliminado de la base: {}", id);
+    log::info!("Documento eliminado de la base");
     Ok(())
 }
 

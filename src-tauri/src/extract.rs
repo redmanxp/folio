@@ -58,7 +58,10 @@ fn extract_invoice_data_inner(path: &Path, exclude_cuit: Option<&str>) -> Extrac
         None
     };
     if pdf_doc.is_some() {
-        log::info!("PDF abierto (posible decrypt) {}", path.display());
+        log::info!(
+            "PDF abierto (posible decrypt) {}",
+            path.file_name().and_then(|n| n.to_str()).unwrap_or("pdf")
+        );
     }
 
     // 1) Bytes crudos: QR ARCA + CUIT/texto embebido (aunque lopdf falle al parsear)
@@ -75,7 +78,10 @@ fn extract_invoice_data_inner(path: &Path, exclude_cuit: Option<&str>) -> Extrac
                 || from_raw.amount.is_some()
                 || from_raw.issue_date.is_some()
             {
-                log::info!("Datos hallados en bytes crudos de {}", path.display());
+                log::info!(
+                    "Datos hallados en bytes crudos de {}",
+                    path.file_name().and_then(|n| n.to_str()).unwrap_or("pdf")
+                );
                 arca::merge_invoice_data(&mut data, from_raw);
                 if data.provider_name.is_none() {
                     data.provider_name = guess_provider_name(&lossy, data.cuit.as_deref());
@@ -157,30 +163,26 @@ fn extract_invoice_data_inner(path: &Path, exclude_cuit: Option<&str>) -> Extrac
             .unwrap_or(false)
         {
             log::warn!(
-                "CUIT extraído coincide con la entidad; se descarta para proveedor: {}",
-                key
+                "CUIT extraído coincide con la entidad; se descarta para proveedor"
             );
             data.cuit = None;
         }
     }
 
+    let file_label = path
+        .file_name()
+        .and_then(|n| n.to_str())
+        .unwrap_or("archivo");
     if data.cuit.is_some() {
         log::info!(
-            "Extracción {}: cuit={:?} nro={:?} monto={:?} qr={} ocr={}",
-            path.display(),
-            data.cuit,
+            "Extracción {}: nro={:?} qr={} ocr={}",
+            file_label,
             data.number,
-            data.amount,
             used_qr,
             used_ocr
         );
     } else {
-        log::warn!(
-            "Sin CUIT en {}: qr={} ocr={}",
-            path.display(),
-            used_qr,
-            used_ocr
-        );
+        log::warn!("Sin CUIT en {}: qr={} ocr={}", file_label, used_qr, used_ocr);
     }
 
     if data.doc_type.is_none() {
@@ -213,7 +215,10 @@ fn open_pdf(path: &Path) -> Option<lopdf::Document> {
     let mut doc = lopdf::Document::load(path).ok()?;
     if doc.is_encrypted() {
         match doc.decrypt("") {
-            Ok(()) => log::info!("PDF desencriptado con password vacío: {}", path.display()),
+            Ok(()) => log::info!(
+                "PDF desencriptado con password vacío: {}",
+                path.file_name().and_then(|n| n.to_str()).unwrap_or("pdf")
+            ),
             Err(err) => {
                 log::warn!(
                     "PDF encriptado y no se pudo abrir con pass vacío ({}): {}",
@@ -646,7 +651,13 @@ fn ocr_dynamic_image(img: &DynamicImage, idx: usize) -> Option<String> {
 
 fn run_tesseract(image_path: &Path) -> Option<String> {
     let tess = find_tesseract()?;
-    log::info!("OCR Tesseract: {}", image_path.display());
+    log::info!(
+        "OCR Tesseract: {}",
+        image_path
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or("imagen")
+    );
     if let Some(text) = run_tesseract_lang(&tess, image_path, "spa+eng") {
         return Some(text);
     }
@@ -684,7 +695,13 @@ fn run_tesseract_lang(tess: &Path, image_path: &Path, lang: &str) -> Option<Stri
             Ok(Some(status)) => {
                 let text = reader.join().ok()?;
                 if !status.success() {
-                    log::warn!("Tesseract ({lang}) falló para {}", image_path.display());
+                    log::warn!(
+                        "Tesseract ({lang}) falló para {}",
+                        image_path
+                            .file_name()
+                            .and_then(|n| n.to_str())
+                            .unwrap_or("imagen")
+                    );
                     return None;
                 }
                 return Some(text);

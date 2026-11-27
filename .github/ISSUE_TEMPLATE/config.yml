@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Contacto general
+    url: mailto:folioapp.dev@gmail.com
+    about: Consultas que no sean bugs ni sugerencias públicas.
+  - name: Apoyar Folio
+    url: https://link.mercadopago.com.ar/folioapp
+    about: Colaboración voluntaria por Mercado Pago.

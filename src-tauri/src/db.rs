@@ -195,3 +195,57 @@ pub fn ensure_entity_exists(conn: &Connection, entity_id: &str) -> AppResult<()>
     }
     Ok(())
 }
+
+pub fn ensure_provider_in_entity(
+    conn: &Connection,
+    entity_id: &str,
+    provider_id: &str,
+) -> AppResult<()> {
+    ensure_entity_exists(conn, entity_id)?;
+    let count: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM providers WHERE id = ?1 AND entity_id = ?2",
+        params![provider_id, entity_id],
+        |row| row.get(0),
+    )?;
+    if count == 0 {
+        return Err(AppError::msg(
+            "El proveedor no existe en la entidad seleccionada",
+        ));
+    }
+    Ok(())
+}
+
+pub fn ensure_document_in_entity(
+    conn: &Connection,
+    entity_id: &str,
+    document_id: &str,
+) -> AppResult<()> {
+    ensure_entity_exists(conn, entity_id)?;
+    let count: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM documents WHERE id = ?1 AND entity_id = ?2",
+        params![document_id, entity_id],
+        |row| row.get(0),
+    )?;
+    if count == 0 {
+        return Err(AppError::msg(
+            "El documento no existe en la entidad seleccionada",
+        ));
+    }
+    Ok(())
+}
+
+/// Si se informa provider_id, debe pertenecer a la misma entidad del documento.
+pub fn ensure_optional_provider_same_entity(
+    conn: &Connection,
+    entity_id: &str,
+    provider_id: &Option<String>,
+) -> AppResult<()> {
+    if let Some(pid) = provider_id
+        .as_ref()
+        .map(|s| s.trim())
+        .filter(|s| !s.is_empty())
+    {
+        ensure_provider_in_entity(conn, entity_id, pid)?;
+    }
+    Ok(())
+}

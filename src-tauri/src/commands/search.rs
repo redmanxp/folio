@@ -151,20 +151,46 @@ pub fn export_search_csv(
 
     for doc in result.documents {
         writer.write_record([
-            doc.file_name,
-            doc.provider_name.unwrap_or_default(),
+            csv_safe(&doc.file_name),
+            csv_safe(&doc.provider_name.unwrap_or_default()),
             String::new(),
-            doc.number.unwrap_or_default(),
-            doc.period.unwrap_or_default(),
-            doc.issue_date.unwrap_or_default(),
-            doc.due_date.unwrap_or_default(),
+            csv_safe(&doc.number.unwrap_or_default()),
+            csv_safe(&doc.period.unwrap_or_default()),
+            csv_safe(&doc.issue_date.unwrap_or_default()),
+            csv_safe(&doc.due_date.unwrap_or_default()),
             doc.amount.map(|a| a.to_string()).unwrap_or_default(),
-            doc.currency,
-            doc.payment_status.unwrap_or_default(),
-            doc.stored_path,
+            csv_safe(&doc.currency),
+            csv_safe(&doc.payment_status.unwrap_or_default()),
+            csv_safe(&doc.stored_path),
         ])?;
     }
     writer.flush()?;
-    log::info!("Exportación CSV: {}", target_path);
+    log::info!("Exportación CSV completada");
     Ok(target_path)
+}
+
+/// Evita que Excel/LibreOffice interprete celdas como fórmulas.
+fn csv_safe(value: &str) -> String {
+    let trimmed = value.trim_start_matches([' ', '\t', '\r', '\n']);
+    let dangerous = trimmed.starts_with(['=', '+', '-', '@', '\t', '\r']);
+    if dangerous {
+        format!("'{value}")
+    } else {
+        value.to_string()
+    }
+}
+
+#[cfg(test)]
+mod csv_tests {
+    use super::csv_safe;
+
+    #[test]
+    fn sanitizes_formula_prefixes() {
+        assert_eq!(csv_safe("=1+1"), "'=1+1");
+        assert_eq!(csv_safe("+cmd"), "'+cmd");
+        assert_eq!(csv_safe("-2"), "'-2");
+        assert_eq!(csv_safe("@sum"), "'@sum");
+        assert_eq!(csv_safe("  =x"), "'  =x");
+        assert_eq!(csv_safe("Norte Energia"), "Norte Energia");
+    }
 }

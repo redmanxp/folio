@@ -87,7 +87,7 @@ pub fn create_provider(payload: NewProvider, state: State<'_, AppState>) -> AppR
         Ok(())
     })?;
 
-    log::info!("Proveedor creado: {}", provider.name);
+    log::info!("Proveedor creado");
     Ok(provider)
 }
 
@@ -105,26 +105,45 @@ pub fn update_provider(payload: UpdateProvider, state: State<'_, AppState>) -> A
     let notes = opt_trim(payload.notes);
 
     state.with_db(|conn| {
+        db::ensure_provider_in_entity(conn, &payload.entity_id, &payload.id)?;
         let changed = conn.execute(
             "UPDATE providers SET
                 name = ?1, cuit = ?2, alias = ?3, cbu = ?4, email = ?5, phone = ?6, notes = ?7
-             WHERE id = ?8",
-            params![name, cuit, alias, cbu, email, phone, notes, payload.id],
+             WHERE id = ?8 AND entity_id = ?9",
+            params![
+                name,
+                cuit,
+                alias,
+                cbu,
+                email,
+                phone,
+                notes,
+                payload.id,
+                payload.entity_id
+            ],
         )?;
         if changed == 0 {
             return Err(AppError::msg("Proveedor no encontrado"));
         }
 
-        let sql = format!("{PROVIDER_SELECT} WHERE id = ?1");
-        conn.query_row(&sql, params![payload.id], map_provider)
+        let sql = format!("{PROVIDER_SELECT} WHERE id = ?1 AND entity_id = ?2");
+        conn.query_row(&sql, params![payload.id, payload.entity_id], map_provider)
             .map_err(AppError::from)
     })
 }
 
 #[tauri::command]
-pub fn delete_provider(id: String, state: State<'_, AppState>) -> AppResult<()> {
+pub fn delete_provider(
+    entity_id: String,
+    id: String,
+    state: State<'_, AppState>,
+) -> AppResult<()> {
     state.with_db(|conn| {
-        let changed = conn.execute("DELETE FROM providers WHERE id = ?1", params![id])?;
+        db::ensure_provider_in_entity(conn, &entity_id, &id)?;
+        let changed = conn.execute(
+            "DELETE FROM providers WHERE id = ?1 AND entity_id = ?2",
+            params![id, entity_id],
+        )?;
         if changed == 0 {
             return Err(AppError::msg("Proveedor no encontrado"));
         }

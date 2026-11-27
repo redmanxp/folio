@@ -41,6 +41,7 @@ export interface NewProvider {
 
 export interface UpdateProvider {
   id: string;
+  entityId: string;
   name: string;
   cuit?: string | null;
   alias?: string | null;
@@ -112,6 +113,7 @@ export interface Payment {
 }
 
 export interface UpdatePayment {
+  entityId: string;
   documentId: string;
   status: string;
   amountDue?: number | null;

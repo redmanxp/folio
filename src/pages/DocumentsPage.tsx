@@ -71,9 +71,13 @@ export function DocumentsPage() {
       setDoc(null);
       return;
     }
+    if (!activeEntityId) {
+      setDoc(null);
+      return;
+    }
     void (async () => {
       try {
-        const current = await api.getDocument(selectedDocumentId);
+        const current = await api.getDocument(activeEntityId, selectedDocumentId);
         setDoc(current);
         setNumber(current.number ?? "");
         setPeriod(current.period ?? "");
@@ -86,13 +90,14 @@ export function DocumentsPage() {
         setError(errMessage(err));
       }
     })();
-  }, [selectedDocumentId, setError]);
+  }, [activeEntityId, selectedDocumentId, setError]);
 
   async function onSave(event: FormEvent) {
     event.preventDefault();
-    if (!doc) return;
+    if (!doc || !activeEntityId) return;
     try {
       const updated = await api.updateDocumentMeta({
+        entityId: activeEntityId,
         id: doc.id,
         number: number || null,
         period: period || null,
@@ -111,11 +116,11 @@ export function DocumentsPage() {
   }
 
   async function onDelete() {
-    if (!doc) return;
+    if (!doc || !activeEntityId) return;
     if (!confirm("¿Quitar el documento del índice de Folio?")) return;
     const deleteFile = confirm("¿También eliminar el archivo copiado en Folio?");
     try {
-      await api.deleteDocument(doc.id, deleteFile);
+      await api.deleteDocument(activeEntityId, doc.id, deleteFile);
       clearSelectedDocument();
       bumpRefresh();
     } catch (err) {
@@ -124,12 +129,12 @@ export function DocumentsPage() {
   }
 
   async function onReprocessOne() {
-    if (!doc) return;
+    if (!doc || !activeEntityId) return;
     setMessage(null);
     try {
       const report = await runProcessing(`Reprocesando ${doc.fileName}…`, async () => {
         const r = await api.reprocessDocument(doc.id);
-        let current = await api.getDocument(doc.id);
+        let current = await api.getDocument(activeEntityId, doc.id);
         const { enrichDocumentWithPdfJs } = await import("@/lib/enrichFromPdf");
         current = await enrichDocumentWithPdfJs(current);
         return { report: r, current };

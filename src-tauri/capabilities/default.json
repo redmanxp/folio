@@ -1,13 +1,11 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Capability for the main Folio window",
+  "description": "Capability mínima para la ventana principal de Folio",
   "windows": ["main"],
   "permissions": [
     "core:default",
     "opener:default",
-    "dialog:default",
-    "fs:default",
-    "shell:allow-open"
+    "dialog:default"
   ]
 }

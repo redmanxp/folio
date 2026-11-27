@@ -21,11 +21,14 @@ export async function enrichDocumentWithPdfJs(doc: Document): Promise<Document> 
   }
 }
 
-export async function enrichDocumentsWithPdfJs(ids: string[]): Promise<number> {
+export async function enrichDocumentsWithPdfJs(
+  entityId: string,
+  ids: string[],
+): Promise<number> {
   let enriched = 0;
   for (const id of ids) {
     try {
-      const doc = await api.getDocument(id);
+      const doc = await api.getDocument(entityId, id);
       if (!needsTextEnrichment(doc)) continue;
       const before = `${doc.amount}|${doc.dueDate}|${doc.number}`;
       const updated = await enrichDocumentWithPdfJs(doc);

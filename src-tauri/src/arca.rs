@@ -127,13 +127,11 @@ pub fn parse_arca_qr_content(content: &str) -> Option<InvoiceData> {
     });
 
     log::info!(
-        "QR ARCA parseado: cuit={:?} pto={:?} nro={:?} importe={:?} auth={:?}/{:?}",
-        cuit,
+        "QR ARCA parseado: pto={:?} nro={:?} moneda={:?} auth={:?}",
         point_of_sale,
         number,
-        payload.importe,
-        auth_type,
-        auth_code
+        currency,
+        auth_type
     );
 
     Some(InvoiceData {
