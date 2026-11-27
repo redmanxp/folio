@@ -128,6 +128,8 @@ pub struct Payment {
     pub file_name: Option<String>,
     pub provider_name: Option<String>,
     pub due_date: Option<String>,
+    pub number: Option<String>,
+    pub issue_date: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -140,6 +142,28 @@ pub struct UpdatePayment {
     pub amount_paid: Option<f64>,
     pub paid_at: Option<String>,
     pub notes: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PaymentEvent {
+    pub id: String,
+    pub payment_id: String,
+    pub entity_id: String,
+    pub amount: f64,
+    pub paid_at: String,
+    pub note: Option<String>,
+    pub created_at: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AddPaymentPartial {
+    pub entity_id: String,
+    pub document_id: String,
+    pub amount: f64,
+    pub paid_at: Option<String>,
+    pub note: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -15,8 +15,6 @@ Aplicación gratuita para Windows que organiza, administra, busca y controla fac
 **No es un sistema contable.** Es una herramienta:
 - Simple, visual, rápida, privada, gratuita, offline, multiempresa.
 
-**Objetivo comercial indirecto:** producto útil y confiable → audiencia → servicios complementarios, sin dañar la confianza.
-
 ## 2. Qué es Folio
 
 Administrador local de documentación de compras. Centraliza y simplifica el seguimiento cotidiano. No reemplaza ERP, contabilidad ni facturador.
@@ -45,9 +43,9 @@ Tauri 2 · Rust · React · TypeScript · SQLite · Tailwind · shadcn/ui · Luc
 
 IPC Tauri controlado; archivos separados de SQLite; desarrollo por etapas con checkpoint. No avanzar con errores críticos.
 
-## 17–20. QA, distribución, crecimiento, monetización
+## 17–20. QA, distribución y crecimiento
 
-Pruebas con PDFs reales; GitHub Releases; SHA-256; VirusTotal; marketing orgánico; Folio gratis; ingresos por donaciones/servicios.
+Pruebas con PDFs reales; GitHub Releases; SHA-256; VirusTotal; difusión orgánica; Folio gratuito; apoyo voluntario opcional.
 
 ## 21–25. Costos, roadmap, marca, reglas Cursor
 

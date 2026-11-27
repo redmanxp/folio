@@ -162,6 +162,37 @@ fn migrate(conn: &Connection) -> AppResult<()> {
         log::info!("Migración schema v3 aplicada (contacto proveedor)");
     }
 
+    let current: i64 = conn
+        .query_row(
+            "SELECT COALESCE(MAX(version), 0) FROM schema_migrations",
+            [],
+            |row| row.get(0),
+        )
+        .unwrap_or(0);
+
+    if current < 4 {
+        conn.execute_batch(
+            "
+            CREATE TABLE IF NOT EXISTS payment_events (
+                id TEXT PRIMARY KEY,
+                payment_id TEXT NOT NULL REFERENCES payments(id) ON DELETE CASCADE,
+                entity_id TEXT NOT NULL REFERENCES entities(id) ON DELETE CASCADE,
+                amount REAL NOT NULL,
+                paid_at TEXT NOT NULL,
+                note TEXT,
+                created_at TEXT NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS idx_payment_events_payment
+                ON payment_events(payment_id, paid_at);
+            ",
+        )?;
+        conn.execute(
+            "INSERT INTO schema_migrations (version, applied_at) VALUES (?1, datetime('now'))",
+            params![4],
+        )?;
+        log::info!("Migración schema v4 aplicada (historial pagos parciales)");
+    }
+
     Ok(())
 }
 

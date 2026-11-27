@@ -3,11 +3,38 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Folio — Tus documentos, bajo control</title>
+    <title>Folio — Facturas y documentos en Windows (QR ARCA/AFIP)</title>
     <meta
       name="description"
-      content="Folio es una app gratuita de Windows para organizar facturas, documentos, proveedores y pagos. Local, sin cuenta y de código abierto."
+      content="Folio es una app gratuita de Windows para organizar facturas y documentos. Lee QR ARCA/AFIP, texto PDF y OCR en tu PC. Local, sin cuenta, open source."
     />
+    <meta
+      name="keywords"
+      content="Folio, facturas, documentos, Windows, QR ARCA, AFIP, PDF, OCR, proveedores, pagos, local, open source, Argentina"
+    />
+    <meta name="author" content="Folio" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://redmanxp.github.io/folio/" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_AR" />
+    <meta property="og:url" content="https://redmanxp.github.io/folio/" />
+    <meta property="og:title" content="Folio — Tus documentos, bajo control" />
+    <meta
+      property="og:description"
+      content="App Windows gratuita para facturas y documentos. Lee QR ARCA/AFIP y PDF en local, sin cuenta."
+    />
+    <meta property="og:image" content="https://redmanxp.github.io/folio/assets/screenshots/inicio.png" />
+    <meta property="og:site_name" content="Folio" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Folio — Tus documentos, bajo control" />
+    <meta
+      name="twitter:description"
+      content="App Windows gratuita para facturas. QR ARCA/AFIP, PDF y OCR local. Sin cuenta."
+    />
+    <meta name="twitter:image" content="https://redmanxp.github.io/folio/assets/screenshots/inicio.png" />
+
     <meta name="theme-color" content="#2563EB" />
     <base href="/folio/" />
     <link rel="icon" href="assets/folio_icon.png" type="image/png" />
@@ -249,12 +276,13 @@
         <section class="hero">
           <h1>Tus documentos, bajo control.</h1>
           <p>
-            Organizá facturas, pagos y documentos en un solo lugar. Sin cuentas, sin suscripciones
-            y sin subir tus archivos a la nube.
+            Organizá facturas, pagos y documentos en un solo lugar. Lee el QR ARCA/AFIP de tus
+            comprobantes en tu PC. Sin cuentas, sin suscripciones y sin subir archivos a la nube.
           </p>
           <div class="pills">
             <span class="pill">Gratis</span>
             <span class="pill">Windows</span>
+            <span class="pill">QR ARCA/AFIP</span>
             <span class="pill">Privado</span>
             <span class="pill">Open source</span>
           </div>
@@ -363,23 +391,30 @@
           <h2>Descargar</h2>
           <div class="panel">
             <p>
-              Versión actual: <strong>0.1.2</strong> (MVP). Instalador NSIS para Windows 10/11 x64,
+              Versión actual: <strong>0.1.3</strong> (MVP). Instalador NSIS para Windows 10/11 x64,
               modo usuario actual.
             </p>
             <div class="meta">
-              <div>Archivo: <code>Folio_0.1.2_x64-setup.exe</code></div>
-              <div>SHA-256: <code>A34FEE8EFCAB8C8900CCC598AE153D220F8FFEE65C23D85A987C8F8E180D1A3A</code></div>
+              <div>Archivo: <code>Folio_0.1.3_x64-setup.exe</code></div>
+              <div>SHA-256: <code>2FCD498513B7B7851EF2A5EF3476CF09C14CDED063146475307A72F3F2547C45</code></div>
+              <div>
+                VirusTotal:
+                <a href="https://www.virustotal.com/gui/file/2fcd498513b7b7851ef2a5ef3476cf09c14cded063146475307a72f3f2547c45">
+                  3/70
+                </a>
+                (típico ML/PUA en instaladores sin firma)
+              </div>
             </div>
             <div class="actions">
               <a class="btn btn-primary" href="https://github.com/redmanxp/folio/releases/latest">
                 Ir a la descarga
               </a>
-              <a class="btn btn-secondary" href="https://github.com/redmanxp/folio/releases/tag/v0.1.2">
+              <a class="btn btn-secondary" href="https://github.com/redmanxp/folio/releases/tag/v0.1.3">
                 Notas de la versión
               </a>
             </div>
             <p>
-              <strong>Aviso de Windows (SmartScreen):</strong> el instalador 0.1.2 no está firmado.
+              <strong>Aviso de Windows (SmartScreen):</strong> el instalador 0.1.3 no está firmado.
               Es normal ver “Windows protegió su PC”. No indica virus: indica software nuevo sin
               certificado de firma. En el aviso elegí <em>Más información</em> →
               <em>Ejecutar de todas formas</em>. Antes, verificá el SHA-256 de arriba.
@@ -404,6 +439,13 @@
           <details>
             <summary>¿Necesito crear una cuenta?</summary>
             <p>No. No hay registro ni inicio de sesión.</p>
+          </details>
+          <details>
+            <summary>¿Lee el QR de ARCA/AFIP?</summary>
+            <p>
+              Sí. Folio lee el QR ARCA/AFIP de tus facturas en forma local (sin enviar el documento
+              a un servidor) y completa datos como CUIT, número, importe y fecha cuando están en el QR.
+            </p>
           </details>
           <details>
             <summary>¿Mis facturas se suben a Internet?</summary>
@@ -451,7 +493,7 @@
       </main>
 
       <footer>
-        <span>Folio · MIT · Windows · v0.1.2</span>
+        <span>Folio · MIT · Windows · v0.1.3</span>
         <span>
           <a href="https://github.com/redmanxp/folio">GitHub</a>
           ·

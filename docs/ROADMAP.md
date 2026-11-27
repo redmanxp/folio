@@ -1,7 +1,7 @@
 # Roadmap maestro Folio
 
 ## Circuito
-Construir → Validar → Publicar → Difundir → Crecer → Monetizar indirectamente
+Construir → Validar → Publicar → Difundir → Crecer → Mantener
 
 ## Leyenda de estados
 - **Completado**: disponible en el MVP actual
@@ -32,9 +32,8 @@ Construir → Validar → Publicar → Difundir → Crecer → Monetizar indirec
 ## Prioridades próximas
 1. Prueba exhaustiva en Windows (instalación, backup, restauración, desinstalación)
 2. Cerrar checklist de seguridad verificable
-3. Beta cerrada con 5–10 usuarios reales
-4. Pulir web/README y capturas
-5. Release 1.0 identificable
+3. Pulir web/README y capturas
+4. Release 1.0 identificable
 
 ## Planificado
 - Exportación XLSX nativa
@@ -45,6 +44,6 @@ Construir → Validar → Publicar → Difundir → Crecer → Monetizar indirec
 
 ## En evaluación
 - Actualizaciones automáticas
-- Firma de código
+- Firma de código (descartada por costo; producto gratis)
 - Dominio propio y correos `@folio...`
 - Mecanismos de apoyo internacionales además de Mercado Pago

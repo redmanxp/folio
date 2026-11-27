@@ -19,7 +19,7 @@ Si preferís GitHub, abrí un issue **sin detalle explotable** y pedí contacto 
 
 Estas afirmaciones se validan con el checklist de abajo. Mientras un ítem esté pendiente, no lo presentamos como garantía absoluta.
 
-## Alcance actual (0.1.2+)
+## Alcance actual (0.1.3+)
 - Base SQLite local con foreign keys
 - Hash SHA-256 de archivos en importación
 - Mutaciones de proveedores/documentos/pagos validadas por `entity_id`
@@ -53,7 +53,7 @@ Orden seguro:
 5. Reabrir SQLite; si falla, rollback al snapshot
 
 ## Aviso de Windows / SmartScreen
-En 0.1.2 el instalador **no está firmado** con certificado de código. Windows suele mostrar:
+En 0.1.3 el instalador **no está firmado** con certificado de código. Windows suele mostrar:
 
 > “Windows protegió su PC” / “SmartScreen…”
 
@@ -67,8 +67,25 @@ Eso **no significa** que Folio esté infectado: significa que el editor aún no 
 
 ### Verificar hash en PowerShell
 ```powershell
-Get-FileHash .\Folio_0.1.2_x64-setup.exe -Algorithm SHA256
+Get-FileHash .\Folio_0.1.3_x64-setup.exe -Algorithm SHA256
 ```
+
+### VirusTotal (0.1.3)
+- Informe: https://www.virustotal.com/gui/file/2fcd498513b7b7851ef2a5ef3476cf09c14cded063146475307a72f3f2547c45
+- Resultado: **3/70** (Cylance, APEX, Sophos). Es típico ML/PUA en instaladores NSIS **sin firma de código**; no implica malware confirmado.
+
+### Firma de código (cómo llegar a instalador firmado)
+Para que SmartScreen confíe más (y bajar falsos positivos):
+
+1. **Certificado Authenticode** a nombre de una persona/empresa verificada:
+   - **OV Code Signing** (Organization Validation): más barato; desde ~2023 suele ir en **token/HSM** (no solo archivo `.pfx` suelto).
+   - **EV Code Signing** (Extended Validation): más caro; reputación SmartScreen más rápida.
+2. Comprar en una CA reconocida (DigiCert, Sectigo, SSL.com, GlobalSign, etc.). En Argentina suele hacer falta CUIT/razón social o datos de persona según el producto.
+3. Firmar el `.exe`/instalador con `signtool` (Windows SDK) o el pipeline de Tauri (`bundle > windows > certificateThumbprint` / variables de entorno de firma).
+4. Timestamp (`/tr` RFC3161) para que la firma siga válida al vencer el cert.
+5. Publicar el instalador ya firmado + SHA-256 + VirusTotal.
+
+Hasta tener certificado, Folio documenta SmartScreen + hash + VT como mitigación.
 
 ## Checklist antes del release 1.0
 - [x] Revisar capabilities y permisos de Tauri (mínimo: dialog + opener)
@@ -82,9 +99,10 @@ Get-FileHash .\Folio_0.1.2_x64-setup.exe -Algorithm SHA256
 - [x] Probar restauraciones de backup reales
 - [ ] Probar desinstalación sin pérdida de archivos originales
 - [ ] Probar en Windows limpio 10/11
-- [x] Publicar hash del instalador (VirusTotal: opcional / pendiente)
+- [x] Publicar hash del instalador + VirusTotal
 - [x] Documentar ausencia de firma de código (SmartScreen esperado)
 - [x] Configurar CSP razonable compatible con PDF.js
+- [x] ~~Certificado de firma de código (OV/EV)~~ — **no aplica** por ahora (producto gratis; hash + VT + SmartScreen documentado)
 
 ## Instaladores
-Cada release debe indicar el nombre del instalador, su SHA-256 y si está firmado o no.
+Cada release debe indicar el nombre del instalador, su SHA-256, link VirusTotal y si está firmado o no.

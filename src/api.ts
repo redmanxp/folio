@@ -8,7 +8,9 @@ import type {
   ImportReport,
   NewEntity,
   NewProvider,
+  AddPaymentPartial,
   Payment,
+  PaymentEvent,
   Provider,
   UpdateProvider,
   SearchFilters,
@@ -45,6 +47,8 @@ export const api = {
   }) => invoke<Document>("update_document_meta", args),
   deleteDocument: (entityId: string, id: string, deleteFile: boolean) =>
     invoke<void>("delete_document", { entityId, id, deleteFile }),
+  revealDocumentInExplorer: (entityId: string, id: string) =>
+    invoke<void>("reveal_document_in_explorer", { entityId, id }),
   listRecentDocuments: (entityId: string, limit = 20) =>
     invoke<Document[]>("list_recent_documents", { entityId, limit }),
 
@@ -65,6 +69,12 @@ export const api = {
   listPayments: (entityId: string, status?: string | null) =>
     invoke<Payment[]>("list_payments", { entityId, status: status ?? null }),
   updatePayment: (payload: UpdatePayment) => invoke<Payment>("update_payment", { payload }),
+  listPaymentEvents: (entityId: string, documentId: string) =>
+    invoke<PaymentEvent[]>("list_payment_events", { entityId, documentId }),
+  addPaymentPartial: (payload: AddPaymentPartial) =>
+    invoke<Payment>("add_payment_partial", { payload }),
+  deletePaymentEvent: (entityId: string, documentId: string, eventId: string) =>
+    invoke<Payment>("delete_payment_event", { entityId, documentId, eventId }),
   listAgenda: (entityId: string) => invoke<Payment[]>("list_agenda", { entityId }),
 
   createBackup: () => invoke<string>("create_backup"),

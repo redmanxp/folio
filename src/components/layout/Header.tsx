@@ -11,14 +11,36 @@ import { useTheme, type ThemeMode } from "@/theme/ThemeProvider";
 
 const themeCycle: ThemeMode[] = ["light", "dark", "system"];
 
+const SEARCH_PLACEHOLDERS: Partial<Record<string, string>> = {
+  invoices: "Buscar en facturas…",
+  documents: "Buscar en documentos…",
+  payments: "Buscar en pagos…",
+  providers: "Buscar en proveedores…",
+  home: "Buscar…",
+};
+
 export function Header() {
-  const { section, setSection, activeEntity, error, setError, processing } = useAppShell();
+  const {
+    section,
+    setSection,
+    activeEntity,
+    error,
+    setError,
+    processing,
+    headerQuery,
+    setHeaderQuery,
+    applyHeaderSearch,
+  } = useAppShell();
   const { theme, setTheme } = useTheme();
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(headerQuery);
   const [helpOpen, setHelpOpen] = useState(false);
   const helpRef = useRef<HTMLDivElement>(null);
   const meta = SECTION_TITLES[section];
   const ThemeIcon = theme === "dark" ? Moon : theme === "light" ? Sun : Monitor;
+
+  useEffect(() => {
+    setQuery(headerQuery);
+  }, [headerQuery]);
 
   useEffect(() => {
     if (!helpOpen) return;
@@ -45,14 +67,11 @@ export function Header() {
 
   function onSearch(event: FormEvent) {
     event.preventDefault();
-    const value = query.trim();
-    if (!value) {
-      setSection("invoices");
-      return;
-    }
-    sessionStorage.setItem("folio.searchQuery", value);
-    setSection("invoices");
+    applyHeaderSearch(query);
   }
+
+  const searchPlaceholder =
+    SEARCH_PLACEHOLDERS[section] ?? "Buscar en la pantalla activa…";
 
   return (
     <header className="border-b border-border bg-card/70 backdrop-blur-md">
@@ -89,13 +108,16 @@ export function Header() {
               Procesando
             </div>
           ) : null}
-          <form onSubmit={onSearch} className="relative hidden w-64 md:block">
+          <form onSubmit={onSearch} className="relative hidden w-72 md:block">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               className="pl-9"
-              placeholder="Buscar facturas…"
+              placeholder={searchPlaceholder}
               value={query}
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={(event) => {
+                setQuery(event.target.value);
+                setHeaderQuery(event.target.value);
+              }}
             />
           </form>
 

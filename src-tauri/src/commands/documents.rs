@@ -155,6 +155,68 @@ pub fn delete_document(
     Ok(())
 }
 
+/// Abre el Explorador de Windows con el archivo seleccionado (solo bajo documents_dir).
+#[tauri::command]
+pub fn reveal_document_in_explorer(
+    entity_id: String,
+    id: String,
+    state: State<'_, AppState>,
+) -> AppResult<()> {
+    let stored_path: String = state.with_db(|conn| {
+        db::ensure_document_in_entity(conn, &entity_id, &id)?;
+        conn.query_row(
+            "SELECT stored_path FROM documents WHERE id = ?1 AND entity_id = ?2",
+            params![id, entity_id],
+            |row| row.get(0),
+        )
+        .map_err(|_| AppError::msg("Documento no encontrado"))
+    })?;
+
+    let path = std::path::PathBuf::from(&stored_path);
+    if !path.is_file() {
+        return Err(AppError::msg("El archivo no existe en disco"));
+    }
+
+    let docs_root = state.paths_snapshot()?.documents_dir;
+    let canonical = path
+        .canonicalize()
+        .map_err(|e| AppError::msg(format!("No se pudo resolver la ruta del archivo: {e}")))?;
+    let allowed = docs_root
+        .canonicalize()
+        .ok()
+        .map(|root| canonical.starts_with(root))
+        .unwrap_or(false);
+    if !allowed {
+        return Err(AppError::msg(
+            "Solo se puede abrir archivos dentro de la carpeta de documentos de Folio",
+        ));
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        // canonicalize() en Windows agrega prefijo \\?\ que explorer no entiende
+        // y termina abriendo "Documentos" del usuario.
+        let mut reveal = canonical.to_string_lossy().replace('/', "\\");
+        if let Some(stripped) = reveal.strip_prefix(r"\\?\") {
+            reveal = stripped.to_string();
+        }
+        // Dos args: explorer interpreta mejor /select, + ruta
+        std::process::Command::new("explorer")
+            .arg("/select,")
+            .arg(&reveal)
+            .spawn()
+            .map_err(|e| AppError::msg(format!("No se pudo abrir el Explorador: {e}")))?;
+        log::info!("Explorador abierto en archivo del documento");
+        return Ok(());
+    }
+
+    #[cfg(not(target_os = "windows"))]
+    {
+        let _ = canonical;
+        Err(AppError::msg("Abrir en el explorador solo está disponible en Windows"))
+    }
+}
+
 #[tauri::command]
 pub fn list_recent_documents(
     entity_id: String,

@@ -50,9 +50,10 @@ Capturas de demostración con **datos inventados** (no son documentos reales):
 | ![Inicio](docs/assets/screenshots/inicio.png) | ![Facturas](docs/assets/screenshots/facturas.png) | ![Proveedores](docs/assets/screenshots/proveedores.png) |
 
 ## Descargar
-- Instalador: [Folio 0.1.2 para Windows](https://github.com/redmanxp/folio/releases/tag/v0.1.2)
-- Archivo: `Folio_0.1.2_x64-setup.exe`
-- SHA-256: `A34FEE8EFCAB8C8900CCC598AE153D220F8FFEE65C23D85A987C8F8E180D1A3A`
+- Instalador: [Folio 0.1.3 para Windows](https://github.com/redmanxp/folio/releases/tag/v0.1.3)
+- Archivo: `Folio_0.1.3_x64-setup.exe`
+- SHA-256: `2FCD498513B7B7851EF2A5EF3476CF09C14CDED063146475307A72F3F2547C45`
+- [VirusTotal](https://www.virustotal.com/gui/file/2fcd498513b7b7851ef2a5ef3476cf09c14cded063146475307a72f3f2547c45): **3/70** (típico ML/PUA en instaladores sin firma)
 - Requisitos: Windows 10/11 x64
 - También: [última versión](https://github.com/redmanxp/folio/releases/latest)
 
@@ -106,7 +107,7 @@ Folio guarda la base y una copia de los documentos en `%APPDATA%/com.folio.app`.
 ## Documentación
 - [Arquitectura](docs/ARQUITECTURA.md)
 - [Roadmap](docs/ROADMAP.md)
-- [Lanzamiento](docs/LANZAMIENTO.md)
+- [Distribución](docs/LANZAMIENTO.md)
 - [Seguridad](SECURITY.md)
 - [Contribuir](CONTRIBUTING.md)
 - [Changelog](CHANGELOG.md)

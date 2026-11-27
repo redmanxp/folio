@@ -46,6 +46,10 @@ type AppShellContextValue = {
   runProcessing: <T>(label: string, task: () => Promise<T>) => Promise<T>;
   workspaceMode: WorkspaceMode;
   setWorkspaceMode: (mode: WorkspaceMode) => Promise<void>;
+  /** Búsqueda del header: filtra la sección activa. */
+  headerQuery: string;
+  setHeaderQuery: (query: string) => void;
+  applyHeaderSearch: (query: string) => void;
 };
 
 const AppShellContext = createContext<AppShellContextValue | null>(null);
@@ -66,8 +70,32 @@ export function AppShellProvider({ children }: { children: ReactNode }) {
     label: "",
   });
   const [workspaceMode, setWorkspaceModeState] = useState<WorkspaceMode>("invoices");
+  const [headerQuery, setHeaderQuery] = useState(
+    () => sessionStorage.getItem("folio.headerQuery") ?? "",
+  );
 
   const bumpRefresh = useCallback(() => setRefreshKey((value) => value + 1), []);
+
+  const applyHeaderSearch = useCallback(
+    (raw: string) => {
+      const value = raw.trim();
+      setHeaderQuery(value);
+      if (value) sessionStorage.setItem("folio.headerQuery", value);
+      else sessionStorage.removeItem("folio.headerQuery");
+
+      const searchable: AppSection[] = [
+        "invoices",
+        "documents",
+        "payments",
+        "providers",
+      ];
+      if (!searchable.includes(section)) {
+        setSectionState("invoices");
+      }
+      bumpRefresh();
+    },
+    [section, bumpRefresh],
+  );
 
   const setSection = useCallback(
     (next: AppSection) => {
@@ -233,6 +261,9 @@ export function AppShellProvider({ children }: { children: ReactNode }) {
       runProcessing,
       workspaceMode,
       setWorkspaceMode,
+      headerQuery,
+      setHeaderQuery,
+      applyHeaderSearch,
     }),
     [
       section,
@@ -258,6 +289,8 @@ export function AppShellProvider({ children }: { children: ReactNode }) {
       runProcessing,
       workspaceMode,
       setWorkspaceMode,
+      headerQuery,
+      applyHeaderSearch,
     ],
   );
 

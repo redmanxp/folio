@@ -23,7 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, paymentStatusLabel } from "@/lib/utils";
 import type { DashboardStats, Document, Payment } from "@/types";
 
 export function DashboardPage() {
@@ -204,7 +204,7 @@ export function DashboardPage() {
                                   : "warning"
                             }
                           >
-                            {doc.paymentStatus ?? "—"}
+                            {paymentStatusLabel(doc.paymentStatus)}
                           </Badge>
                         </TableCell>
                       ) : null}

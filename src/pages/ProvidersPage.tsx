@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { ArrowLeft, Plus, Users } from "lucide-react";
 import { api, errMessage } from "@/api";
 import { useAppShell } from "@/app/AppShellContext";
@@ -7,15 +7,26 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { LoadingBlock } from "@/components/ui/skeleton";
+import { SortableHead } from "@/components/ui/sortable-head";
 import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
 import type { Provider } from "@/types";
+
+type SortKey = "name" | "cuit" | "phone" | "email" | "cbu";
+
+function compareProviders(a: Provider, b: Provider, key: SortKey): number {
+  const av = (a[key] || "") as string;
+  const bv = (b[key] || "") as string;
+  if (key === "name") {
+    return (a.name || "").localeCompare(b.name || "", "es", { sensitivity: "base" });
+  }
+  return av.localeCompare(bv, "es", { sensitivity: "base", numeric: true });
+}
 
 type ProviderForm = {
   name: string;
@@ -60,15 +71,50 @@ export function ProvidersPage() {
     openProvider,
     closeProvider,
     clearSelectedProvider,
+    headerQuery,
   } = useAppShell();
   const [providers, setProviders] = useState<Provider[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState<ProviderForm>(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [sortKey, setSortKey] = useState<SortKey>("name");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
   const selected = providers.find((p) => p.id === selectedProviderId) ?? null;
   const showFicha = creating || Boolean(selected);
+
+  const filteredProviders = useMemo(() => {
+    const q = headerQuery.trim().toLowerCase();
+    if (!q) return providers;
+    return providers.filter((p) => {
+      const hay = [p.name, p.alias, p.cuit, p.phone, p.email, p.cbu, p.notes]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return hay.includes(q);
+    });
+  }, [providers, headerQuery]);
+
+  const sortedProviders = useMemo(() => {
+    const rows = [...filteredProviders];
+    const dir = sortDir === "asc" ? 1 : -1;
+    rows.sort((a, b) => {
+      const primary = compareProviders(a, b, sortKey) * dir;
+      if (primary !== 0) return primary;
+      return a.name.localeCompare(b.name, "es", { sensitivity: "base" });
+    });
+    return rows;
+  }, [filteredProviders, sortKey, sortDir]);
+
+  function toggleSort(key: SortKey) {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  }
 
   async function refresh() {
     if (!activeEntityId) {
@@ -298,7 +344,13 @@ export function ProvidersPage() {
         <CardHeader>
           <div>
             <CardTitle>Proveedores</CardTitle>
-            <CardDescription>{providers.length} proveedores · clic para abrir la ficha</CardDescription>
+            <CardDescription>
+              {sortedProviders.length}
+              {headerQuery.trim() && sortedProviders.length !== providers.length
+                ? ` de ${providers.length}`
+                : ""}{" "}
+              proveedores · clic para abrir la ficha
+            </CardDescription>
           </div>
           <Button
             type="button"
@@ -320,19 +372,50 @@ export function ProvidersPage() {
               actionLabel="Nuevo proveedor"
               onAction={startCreate}
             />
+          ) : sortedProviders.length === 0 ? (
+            <EmptyState
+              icon={Users}
+              title="Sin coincidencias"
+              description="Ningún proveedor coincide con la búsqueda del encabezado."
+            />
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nombre</TableHead>
-                  <TableHead>CUIT</TableHead>
-                  <TableHead>Teléfono</TableHead>
-                  <TableHead>Correo</TableHead>
-                  <TableHead>CBU</TableHead>
+                  <SortableHead
+                    label="Nombre"
+                    active={sortKey === "name"}
+                    dir={sortDir}
+                    onClick={() => toggleSort("name")}
+                  />
+                  <SortableHead
+                    label="CUIT"
+                    active={sortKey === "cuit"}
+                    dir={sortDir}
+                    onClick={() => toggleSort("cuit")}
+                  />
+                  <SortableHead
+                    label="Teléfono"
+                    active={sortKey === "phone"}
+                    dir={sortDir}
+                    onClick={() => toggleSort("phone")}
+                  />
+                  <SortableHead
+                    label="Correo"
+                    active={sortKey === "email"}
+                    dir={sortDir}
+                    onClick={() => toggleSort("email")}
+                  />
+                  <SortableHead
+                    label="CBU"
+                    active={sortKey === "cbu"}
+                    dir={sortDir}
+                    onClick={() => toggleSort("cbu")}
+                  />
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {providers.map((provider) => (
+                {sortedProviders.map((provider) => (
                   <TableRow
                     key={provider.id}
                     className="cursor-pointer"

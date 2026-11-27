@@ -1,9 +1,10 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { convertFileSrc } from "@tauri-apps/api/core";
-import { FileText, ScanText } from "lucide-react";
+import { FileText, FolderOpen, ScanText } from "lucide-react";
 import { api, errMessage } from "@/api";
 import { useAppShell } from "@/app/AppShellContext";
 import { PdfViewer } from "@/components/documents/PdfViewer";
+import { PaymentStatusControls } from "@/components/payments/PaymentStatusControls";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +12,8 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { LoadingBlock } from "@/components/ui/skeleton";
+import { SortableHead } from "@/components/ui/sortable-head";
+import { DEFAULT_PAGE_SIZE, TablePagination } from "@/components/ui/table-pagination";
 import {
   Table,
   TableBody,
@@ -19,7 +22,28 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { cn, dueDateClass } from "@/lib/utils";
 import type { Document, Provider } from "@/types";
+
+type SortKey = "fileName" | "providerName" | "period" | "importedAt";
+
+function compareDocsList(a: Document, b: Document, key: SortKey): number {
+  switch (key) {
+    case "providerName":
+      return (a.providerName || "").localeCompare(b.providerName || "", "es", {
+        sensitivity: "base",
+      });
+    case "period":
+      return (a.period || "").localeCompare(b.period || "");
+    case "importedAt":
+      return (a.importedAt || "").localeCompare(b.importedAt || "");
+    case "fileName":
+    default:
+      return (a.fileName || "").localeCompare(b.fileName || "", "es", {
+        sensitivity: "base",
+      });
+  }
+}
 
 export function DocumentsPage() {
   const {
@@ -34,11 +58,15 @@ export function DocumentsPage() {
     runProcessing,
     processing,
     workspaceMode,
+    headerQuery,
   } = useAppShell();
   const [docs, setDocs] = useState<Document[]>([]);
   const [doc, setDoc] = useState<Document | null>(null);
   const [providers, setProviders] = useState<Provider[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sortKey, setSortKey] = useState<SortKey>("importedAt");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [page, setPage] = useState(0);
   const [number, setNumber] = useState("");
   const [period, setPeriod] = useState("");
   const [issueDate, setIssueDate] = useState("");
@@ -55,9 +83,10 @@ export function DocumentsPage() {
         setLoading(false);
         return;
       }
-      setLoading(true);
+      const soft = docs.length > 0;
+      if (!soft) setLoading(true);
       try {
-        setDocs(await api.listRecentDocuments(activeEntityId, 100));
+        setDocs(await api.listRecentDocuments(activeEntityId, 500));
         setProviders(await api.listProviders(activeEntityId));
       } catch (err) {
         setError(errMessage(err));
@@ -65,7 +94,49 @@ export function DocumentsPage() {
         setLoading(false);
       }
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeEntityId, refreshKey, setError]);
+
+  useEffect(() => {
+    setPage(0);
+  }, [headerQuery, sortKey, sortDir]);
+
+  const filteredDocs = useMemo(() => {
+    const q = headerQuery.trim().toLowerCase();
+    if (!q) return docs;
+    return docs.filter((item) => {
+      const hay = [item.fileName, item.providerName, item.period, item.number, item.importedAt]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return hay.includes(q);
+    });
+  }, [docs, headerQuery]);
+
+  const sortedDocs = useMemo(() => {
+    const rows = [...filteredDocs];
+    const dir = sortDir === "asc" ? 1 : -1;
+    rows.sort((a, b) => {
+      const primary = compareDocsList(a, b, sortKey) * dir;
+      if (primary !== 0) return primary;
+      return (b.importedAt || "").localeCompare(a.importedAt || "");
+    });
+    return rows;
+  }, [filteredDocs, sortKey, sortDir]);
+
+  const pageDocs = useMemo(() => {
+    const start = page * DEFAULT_PAGE_SIZE;
+    return sortedDocs.slice(start, start + DEFAULT_PAGE_SIZE);
+  }, [sortedDocs, page]);
+
+  function toggleSort(key: SortKey) {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir(key === "importedAt" || key === "period" ? "desc" : "asc");
+    }
+  }
 
   useEffect(() => {
     if (!selectedDocumentId) {
@@ -124,6 +195,15 @@ export function DocumentsPage() {
       await api.deleteDocument(activeEntityId, doc.id, deleteFile);
       closeDocument();
       bumpRefresh();
+    } catch (err) {
+      setError(errMessage(err));
+    }
+  }
+
+  async function onRevealInExplorer(documentId: string) {
+    if (!activeEntityId) return;
+    try {
+      await api.revealDocumentInExplorer(activeEntityId, documentId);
     } catch (err) {
       setError(errMessage(err));
     }
@@ -191,9 +271,20 @@ export function DocumentsPage() {
               <CardTitle>{doc.fileName}</CardTitle>
               <CardDescription>Hash {doc.fileHash.slice(0, 16)}…</CardDescription>
             </div>
-            <Button variant="outline" onClick={closeDocument}>
-              Volver al listado
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                title="Abrir carpeta en el Explorador"
+                onClick={() => void onRevealInExplorer(doc.id)}
+              >
+                <FolderOpen className="h-4 w-4" />
+                Abrir carpeta
+              </Button>
+              <Button variant="outline" onClick={closeDocument}>
+                Volver al listado
+              </Button>
+            </div>
           </CardHeader>
           <CardContent className="p-3">
             {isPdf ? (
@@ -240,7 +331,9 @@ export function DocumentsPage() {
                 <Input type="date" value={issueDate} onChange={(e) => setIssueDate(e.target.value)} />
               </label>
               <label className="grid gap-1 text-sm">
-                Vencimiento
+                <span className={cn(dueDateClass(dueDate || null, doc.paymentStatus))}>
+                  Vencimiento
+                </span>
                 <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
               </label>
               <label className="grid gap-1 text-sm">
@@ -258,6 +351,30 @@ export function DocumentsPage() {
                   ))}
                 </Select>
               </label>
+
+              {workspaceMode === "management" && activeEntityId ? (
+                <div className="rounded-xl border border-border bg-muted/30 p-3">
+                  <p className="mb-2 text-sm font-medium">Pago</p>
+                  <PaymentStatusControls
+                    entityId={activeEntityId}
+                    documentId={doc.id}
+                    status={doc.paymentStatus}
+                    amountDue={amount ? Number(amount) : doc.amount}
+                    onChanged={() => {
+                      bumpRefresh();
+                      void (async () => {
+                        try {
+                          const current = await api.getDocument(activeEntityId, doc.id);
+                          setDoc(current);
+                        } catch (err) {
+                          setError(errMessage(err));
+                        }
+                      })();
+                    }}
+                    onError={setError}
+                  />
+                </div>
+              ) : null}
 
               {(doc.pointOfSale != null ||
                 doc.authCode ||
@@ -341,39 +458,86 @@ export function DocumentsPage() {
           <Button onClick={() => setSection("invoices")}>Importar más</Button>
         </CardHeader>
         <CardContent>
-          {docs.length === 0 ? (
+          {sortedDocs.length === 0 ? (
             <EmptyState
               icon={FileText}
-              title="Todavía no hay documentos"
-              description="Importá PDF desde Facturas."
-              actionLabel="Ir a Facturas"
-              onAction={() => setSection("invoices")}
+              title={docs.length === 0 ? "Todavía no hay documentos" : "Sin coincidencias"}
+              description={
+                docs.length === 0
+                  ? "Importá PDF desde Facturas."
+                  : "Ningún documento coincide con la búsqueda del encabezado."
+              }
+              actionLabel={docs.length === 0 ? "Ir a Facturas" : undefined}
+              onAction={docs.length === 0 ? () => setSection("invoices") : undefined}
             />
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Archivo</TableHead>
-                  <TableHead>Proveedor</TableHead>
-                  <TableHead>Período</TableHead>
-                  <TableHead>Importado</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {docs.map((item) => (
-                  <TableRow
-                    key={item.id}
-                    className="cursor-pointer"
-                    onClick={() => openDocument(item.id)}
-                  >
-                    <TableCell className="font-medium">{item.fileName}</TableCell>
-                    <TableCell>{item.providerName ?? "—"}</TableCell>
-                    <TableCell>{item.period ?? "—"}</TableCell>
-                    <TableCell>{item.importedAt.slice(0, 10)}</TableCell>
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <SortableHead
+                      label="Archivo"
+                      active={sortKey === "fileName"}
+                      dir={sortDir}
+                      onClick={() => toggleSort("fileName")}
+                    />
+                    <SortableHead
+                      label="Proveedor"
+                      active={sortKey === "providerName"}
+                      dir={sortDir}
+                      onClick={() => toggleSort("providerName")}
+                    />
+                    <SortableHead
+                      label="Período"
+                      active={sortKey === "period"}
+                      dir={sortDir}
+                      onClick={() => toggleSort("period")}
+                    />
+                    <SortableHead
+                      label="Importado"
+                      active={sortKey === "importedAt"}
+                      dir={sortDir}
+                      onClick={() => toggleSort("importedAt")}
+                    />
+                    <TableHead className="w-[1%]" />
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {pageDocs.map((item) => (
+                    <TableRow
+                      key={item.id}
+                      className="cursor-pointer"
+                      onClick={() => openDocument(item.id)}
+                    >
+                      <TableCell className="font-medium">{item.fileName}</TableCell>
+                      <TableCell>{item.providerName ?? "—"}</TableCell>
+                      <TableCell>{item.period ?? "—"}</TableCell>
+                      <TableCell>{item.importedAt.slice(0, 10)}</TableCell>
+                      <TableCell>
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="ghost"
+                          title="Abrir carpeta en el Explorador"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            void onRevealInExplorer(item.id);
+                          }}
+                        >
+                          <FolderOpen className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              <TablePagination
+                page={page}
+                pageSize={DEFAULT_PAGE_SIZE}
+                total={sortedDocs.length}
+                onPageChange={setPage}
+              />
+            </>
           )}
         </CardContent>
       </Card>

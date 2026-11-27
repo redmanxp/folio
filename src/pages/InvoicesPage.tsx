@@ -1,15 +1,17 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
-import { ArrowDown, ArrowUp, ArrowUpDown, FileUp, ScanText, Search } from "lucide-react";
+import { FileUp, ScanText, Search } from "lucide-react";
 import { api, errMessage } from "@/api";
 import { useAppShell } from "@/app/AppShellContext";
 import { Alert } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
+import { PaymentStatusControls } from "@/components/payments/PaymentStatusControls";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import { SortableHead } from "@/components/ui/sortable-head";
+import { DEFAULT_PAGE_SIZE, TablePagination } from "@/components/ui/table-pagination";
 import {
   Table,
   TableBody,
@@ -18,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn, formatCurrency } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
 import type { Document, ImportReport, SearchResult } from "@/types";
 
 type SortKey = "providerName" | "number" | "issueDate" | "period" | "amount" | "paymentStatus";
@@ -30,12 +32,16 @@ export function InvoicesPage() {
     openProvider,
     setError,
     bumpRefresh,
+    refreshKey,
     setSection,
     processing,
     runProcessing,
     workspaceMode,
+    headerQuery,
   } = useAppShell();
-  const [query, setQuery] = useState(() => sessionStorage.getItem("folio.searchQuery") ?? "");
+  const [query, setQuery] = useState(
+    () => sessionStorage.getItem("folio.headerQuery") ?? sessionStorage.getItem("folio.searchQuery") ?? "",
+  );
   const [provider, setProvider] = useState("");
   const [period, setPeriod] = useState("");
   const [paymentStatus, setPaymentStatus] = useState("");
@@ -44,6 +50,7 @@ export function InvoicesPage() {
   const [busy, setBusy] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>("issueDate");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [page, setPage] = useState(0);
   const busyUi = busy || processing.active;
 
   const sortedDocs = useMemo(() => {
@@ -53,11 +60,15 @@ export function InvoicesPage() {
     docs.sort((a, b) => {
       const primary = compareDocs(a, b, sortKey) * dir;
       if (primary !== 0) return primary;
-      // desempate: más recientes primero
       return (b.importedAt || "").localeCompare(a.importedAt || "");
     });
     return docs;
   }, [result, sortKey, sortDir]);
+
+  const pageDocs = useMemo(() => {
+    const start = page * DEFAULT_PAGE_SIZE;
+    return sortedDocs.slice(start, start + DEFAULT_PAGE_SIZE);
+  }, [sortedDocs, page]);
 
   function toggleSort(key: SortKey) {
     if (sortKey === key) {
@@ -77,19 +88,20 @@ export function InvoicesPage() {
     return value;
   }
 
-  async function runSearch(event?: FormEvent) {
+  async function runSearch(event?: FormEvent, opts?: { soft?: boolean; queryOverride?: string }) {
     event?.preventDefault();
     if (!activeEntityId) {
       setError("Seleccioná o creá una entidad");
       return;
     }
-    setBusy(true);
+    if (!opts?.soft) setBusy(true);
     try {
       sessionStorage.removeItem("folio.searchQuery");
+      const q = opts?.queryOverride ?? query;
       setResult(
         await api.searchDocuments({
           entityId: activeEntityId,
-          query: query || null,
+          query: q || null,
           provider: provider || null,
           period: period || null,
           paymentStatus: paymentStatus || null,
@@ -103,9 +115,18 @@ export function InvoicesPage() {
   }
 
   useEffect(() => {
-    if (activeEntityId) void runSearch();
+    if (headerQuery !== query) setQuery(headerQuery);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeEntityId]);
+  }, [headerQuery]);
+
+  useEffect(() => {
+    if (activeEntityId) void runSearch(undefined, { soft: Boolean(result) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeEntityId, refreshKey]);
+
+  useEffect(() => {
+    setPage(0);
+  }, [result, sortKey, sortDir, query, provider, period, paymentStatus]);
 
   async function importFiles() {
     if (!activeEntityId) {
@@ -282,6 +303,7 @@ export function InvoicesPage() {
               description="Importá archivos o ajustá los filtros de búsqueda."
             />
           ) : (
+            <>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -317,18 +339,13 @@ export function InvoicesPage() {
                     className="text-right"
                   />
                   {workspaceMode === "management" ? (
-                    <SortableHead
-                      label="Pago"
-                      active={sortKey === "paymentStatus"}
-                      dir={sortDir}
-                      onClick={() => toggleSort("paymentStatus")}
-                    />
+                    <TableHead>Pago</TableHead>
                   ) : null}
                   <TableHead className="w-[1%]" />
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sortedDocs.map((doc) => (
+                {pageDocs.map((doc) => (
                   <TableRow
                     key={doc.id}
                     className="cursor-pointer"
@@ -356,19 +373,20 @@ export function InvoicesPage() {
                     <TableCell className="text-right tabular-nums">
                       {doc.amount != null ? formatCurrency(doc.amount) : "—"}
                     </TableCell>
-                    {workspaceMode === "management" ? (
-                      <TableCell>
-                        <Badge
-                          variant={
-                            doc.paymentStatus === "paid"
-                              ? "success"
-                              : doc.paymentStatus === "partial"
-                                ? "default"
-                                : "warning"
-                          }
-                        >
-                          {doc.paymentStatus ?? "—"}
-                        </Badge>
+                    {workspaceMode === "management" && activeEntityId ? (
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <PaymentStatusControls
+                          entityId={activeEntityId}
+                          documentId={doc.id}
+                          status={doc.paymentStatus}
+                          amountDue={doc.amount}
+                          compact
+                          onChanged={() => {
+                            bumpRefresh();
+                            void runSearch(undefined, { soft: true });
+                          }}
+                          onError={setError}
+                        />
                       </TableCell>
                     ) : null}
                     <TableCell>
@@ -398,7 +416,7 @@ export function InvoicesPage() {
                               );
                               setReport(imported);
                               bumpRefresh();
-                              await runSearch();
+                              await runSearch(undefined, { soft: true });
                             } catch (err) {
                               setError(errMessage(err));
                             }
@@ -412,43 +430,17 @@ export function InvoicesPage() {
                 ))}
               </TableBody>
             </Table>
+              <TablePagination
+                page={page}
+                pageSize={DEFAULT_PAGE_SIZE}
+                total={sortedDocs.length}
+                onPageChange={setPage}
+              />
+            </>
           )}
         </CardContent>
       </Card>
     </div>
-  );
-}
-
-function SortableHead({
-  label,
-  active,
-  dir,
-  onClick,
-  className,
-}: {
-  label: string;
-  active: boolean;
-  dir: "asc" | "desc";
-  onClick: () => void;
-  className?: string;
-}) {
-  const Icon = !active ? ArrowUpDown : dir === "asc" ? ArrowUp : ArrowDown;
-  const right = className?.includes("text-right");
-  return (
-    <TableHead className={className}>
-      <button
-        type="button"
-        className={cn(
-          "inline-flex items-center gap-1 font-medium hover:text-foreground",
-          right ? "w-full justify-end text-right" : "text-left",
-          active ? "text-foreground" : "text-muted-foreground",
-        )}
-        onClick={onClick}
-      >
-        {label}
-        <Icon className="h-3.5 w-3.5 opacity-70" />
-      </button>
-    </TableHead>
   );
 }
 

@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.1.3 — 2026-11-26
+
+### Añadido
+- Documentos: abrir carpeta en el Explorador con el archivo seleccionado (ruta real del PDF)
+- Pagos: columnas como Facturas, estados en castellano, botones resaltados
+- Pagos parciales con historial (agregar/eliminar); confirmación al salir de Pagado
+- Control de pago en Facturas/visor (modo gestión)
+- Colores de vencimiento: rojo / amarillo (≤7 días) / verde
+- Columnas ordenables en Facturas, Documentos, Pagos y Proveedores
+- Paginación en Facturas, Documentos y Pagos
+- Búsqueda del encabezado filtrando la sección activa
+- Clic en proveedor en Pagos filtra esa tabla
+- Instalador NSIS `Folio_0.1.3_x64-setup.exe`
+
 ## 0.1.2 — 2026-11-26
 
 ### Corregido

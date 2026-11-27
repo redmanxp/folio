@@ -110,6 +110,8 @@ export interface Payment {
   fileName?: string | null;
   providerName?: string | null;
   dueDate?: string | null;
+  number?: string | null;
+  issueDate?: string | null;
 }
 
 export interface UpdatePayment {
@@ -120,6 +122,24 @@ export interface UpdatePayment {
   amountPaid?: number | null;
   paidAt?: string | null;
   notes?: string | null;
+}
+
+export interface PaymentEvent {
+  id: string;
+  paymentId: string;
+  entityId: string;
+  amount: number;
+  paidAt: string;
+  note?: string | null;
+  createdAt: string;
+}
+
+export interface AddPaymentPartial {
+  entityId: string;
+  documentId: string;
+  amount: number;
+  paidAt?: string | null;
+  note?: string | null;
 }
 
 export interface ImportReport {

@@ -1,27 +1,26 @@
-# Plan de lanzamiento (costo $0)
+# Distribución y difusión
 
-## Antes de difundir
-- [ ] Producto estable (backup/restore OK)
-- [ ] README claro
-- [ ] LICENSE MIT
-- [ ] SECURITY.md
-- [ ] SHA-256 del instalador
-- [ ] VirusTotal por versión
-- [ ] Página oficial (GitHub Pages) o README como landing mínima
-- [ ] Video demo 30–60s
+## Canal oficial
+La descarga pública de Folio es **GitHub Releases**.
+El sitio en GitHub Pages resume el producto, el hash SHA-256 y el aviso de SmartScreen.
 
-## Canales
-1. GitHub Releases (oficial)
-2. Comunidades (Reddit/grupos) con mensaje genuino
-3. Email **dirigido**, sin listas ajenas ni adjuntos
-4. SEO con pocos artículos útiles
-5. WinGet más adelante
+- Releases: https://github.com/redmanxp/folio/releases
+- Sitio: https://redmanxp.github.io/folio/
+- Seguridad: [SECURITY.md](../SECURITY.md)
 
-## Correo
-- Dominio/identidad propia
-- Enlace oficial, nunca `.exe` adjunto
+## Confianza del instalador
+- Publicamos SHA-256 en cada release.
+- Escaneamos el instalador en VirusTotal y enlazamos el informe.
+- Folio es gratuito y el instalador actual no está firmado con certificado de código; Windows puede mostrar SmartScreen. Detalle y verificación en SECURITY.md.
+
+## Difusión
+- Comunidades y foros con mensaje claro y enlace oficial (nunca el `.exe` adjunto).
+- Contenido útil (guías / SEO) cuando aporte valor real.
+- WinGet u otros catálogos, más adelante.
+
+## Comunicaciones por correo
+Si se envía correo sobre Folio:
+- Identidad y dominio propios
+- Solo enlaces oficiales (nunca adjuntar el instalador)
 - Opt-out claro
-- Cumplir normativa argentina aplicable (datos personales / comunicaciones comerciales)
-
-## Monetización indirecta (después)
-Donaciones (Mercado Pago) · LAN · integraciones · a medida · consultoría
+- Cumplir la normativa argentina aplicable

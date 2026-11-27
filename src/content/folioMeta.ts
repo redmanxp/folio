@@ -3,7 +3,7 @@ export const FOLIO_META = {
   name: "Folio",
   tagline: "Organizá tus documentos. Simplificá tu día.",
   slogan: "Tus documentos, bajo control.",
-  versionLabel: "0.1.2",
+  versionLabel: "0.1.3",
   license: "MIT",
   platform: "Windows",
 } as const;
